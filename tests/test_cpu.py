@@ -76,7 +76,7 @@ class TestOperation:
         operation = Operation.decode(opcode)
 
         assert operation.nibble == Operation.SET_INDEX
-        assert operation.nn == 0x22A
+        assert operation.nn == 0x2A
 
     def test_display(self):
         opcode = 0xD01F

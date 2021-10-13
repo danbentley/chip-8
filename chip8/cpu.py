@@ -30,3 +30,45 @@ class Registers:
         if not hasattr(self, f"V{index}"):
             raise InvalidRegisterError
         setattr(self, f"V{index}", value)
+
+
+class Operation:
+    CLEAR_SCREEN = 0xE0
+    JUMP = 0x1
+    SET_REGISTER = 0x6
+    ADD = 0x7
+    SET_INDEX = 0xA
+    DISPLAY = 0xD
+
+    def __init__(
+        self,
+        x=None,
+        y=None,
+        nibble=None,
+        high=None,
+        low=None,
+        n=None,
+        nn=None,
+        nnn=None,
+    ):
+        self.x = x
+        self.y = y
+        self.n = n
+        self.nibble = nibble
+        self.high = high
+        self.low = low
+        self.nn = nn
+        self.nnn = nnn
+
+    @classmethod
+    def decode(cls, opcode):
+        high, low = opcode >> 8, opcode & 0x0F0
+
+        nibble = high >> 4
+        y = low >> 4
+        x = high & 0xF
+        n = opcode & 0x0F
+        nn = opcode & 0x0FF
+        nnn = opcode & 0x0FFF
+
+        return cls(x=x, y=y, nibble=nibble, high=high, low=low, n=n, nn=nn, nnn=nnn)
