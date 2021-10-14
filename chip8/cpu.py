@@ -76,3 +76,59 @@ class Operation:
             nnn=nnn,
             opcode=opcode,
         )
+
+
+class UnhandledOperationError(Exception):
+    def __init__(self, *args, operation=None):
+        super().__init__(*args)
+        self.operation = operation
+
+
+class CPU:
+    program_counter = 0x200
+    index = 0
+
+    def __init__(self, memory, display):
+        self.memory = memory
+        self.display = display
+        self.registers = Registers()
+
+    def fetch(self):
+        instruction = self.memory[self.program_counter]
+        self.program_counter += 1
+        instruction2 = self.memory[self.program_counter]
+        self.program_counter += 1
+
+        return instruction << 8 | instruction2
+
+    def decode(self, opcode):
+        return Operation.decode(opcode)
+
+    def execute(self, operation):
+        if operation.low == Operation.CLEAR_SCREEN:
+            self.display.clear()
+        elif operation.nibble == Operation.JUMP:
+            self.program_counter = operation.nnn
+        elif operation.nibble == Operation.SET_REGISTER:
+            self.registers[operation.x] = operation.nn
+        elif operation.nibble == Operation.ADD:
+            self.registers[operation.x] += operation.nn
+        elif operation.nibble == Operation.DISPLAY:
+            sprite = [
+                self.memory[i] for i in range(self.index, self.index + operation.n)
+            ]
+            self.display.draw_sprite(
+                sprite, self.registers[operation.x], self.registers[operation.y]
+            )
+        elif operation.nibble == Operation.SET_INDEX:
+            self.index = operation.nnn
+        else:
+            raise UnhandledOperationError(
+                f"Unhandled operation for opcode: {hex(operation.opcode)}",
+                operation=operation,
+            )
+
+    def cycle(self):
+        opcode = self.fetch()
+        operation = self.decode(opcode)
+        self.execute(operation)
