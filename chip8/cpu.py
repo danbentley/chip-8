@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+
+
 class InvalidRegisterError(Exception):
     ...
 
@@ -32,6 +35,7 @@ class Registers:
         setattr(self, f"V{index}", value)
 
 
+@dataclass(frozen=True)
 class Operation:
     CLEAR_SCREEN = 0xE0
     JUMP = 0x1
@@ -40,25 +44,15 @@ class Operation:
     SET_INDEX = 0xA
     DISPLAY = 0xD
 
-    def __init__(
-        self,
-        x=None,
-        y=None,
-        nibble=None,
-        high=None,
-        low=None,
-        n=None,
-        nn=None,
-        nnn=None,
-    ):
-        self.x = x
-        self.y = y
-        self.n = n
-        self.nibble = nibble
-        self.high = high
-        self.low = low
-        self.nn = nn
-        self.nnn = nnn
+    x: int
+    y: int
+    nibble: int
+    high: int
+    low: int
+    n: int
+    nn: int
+    nnn: int
+    opcode: int
 
     @classmethod
     def decode(cls, opcode):
@@ -71,4 +65,14 @@ class Operation:
         nn = opcode & 0x0FF
         nnn = opcode & 0x0FFF
 
-        return cls(x=x, y=y, nibble=nibble, high=high, low=low, n=n, nn=nn, nnn=nnn)
+        return cls(
+            x=x,
+            y=y,
+            nibble=nibble,
+            high=high,
+            low=low,
+            n=n,
+            nn=nn,
+            nnn=nnn,
+            opcode=opcode,
+        )
