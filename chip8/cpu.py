@@ -1,3 +1,5 @@
+from collections import deque
+
 from dataclasses import dataclass
 
 
@@ -40,6 +42,7 @@ class Registers:
 class Operation:
     CLEAR_SCREEN = 0xE0
     JUMP = 0x1
+    CALL = 0x2
     SKIP_IF_VX_AND_NN_ARE_EQUAL = 0x3
     SKIP_IF_VX_AND_NN_ARE_NOT_EQUAL = 0x4
     SKIP_IF_VX_AND_VY_ARE_EQUAL = 0x5
@@ -92,6 +95,8 @@ class UnhandledOperationError(Exception):
 class CPU:
     program_counter = 0x200
     index = 0
+    stack = deque()
+    stack_pointer = 0x0
 
     def __init__(self, memory, display, registers):
         self.memory = memory
@@ -113,6 +118,10 @@ class CPU:
         if operation.low == Operation.CLEAR_SCREEN:
             self.display.clear()
         elif operation.nibble == Operation.JUMP:
+            self.program_counter = operation.nnn
+        elif operation.nibble == Operation.CALL:
+            self.stack_pointer += 1
+            self.stack.append(self.program_counter)
             self.program_counter = operation.nnn
         elif operation.nibble == Operation.SKIP_IF_VX_AND_NN_ARE_EQUAL:
             if self.registers[operation.x] == operation.nn:

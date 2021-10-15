@@ -86,6 +86,14 @@ class TestOperation:
         assert operation.nibble == Operation.JUMP
         assert operation.nnn == 0x228
 
+    def test_call(self):
+        opcode = 0x2428
+
+        operation = Operation.decode(opcode)
+
+        assert operation.nibble == Operation.CALL
+        assert operation.nnn == 0x428
+
     def test_skip_if_vx_and_nn_are_equal(self):
         opcode = 0x362B
 
@@ -196,6 +204,14 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.program_counter == 0x228
+
+    @pytest.mark.parametrize("memory", [[0x24, 0x28]], indirect=True)
+    def test_call(self, cpu):
+        cpu.cycle()
+
+        assert cpu.stack_pointer == 0x1
+        assert 0x202 in cpu.stack
+        assert cpu.program_counter == 0x428
 
     @pytest.mark.parametrize("memory", [[0x36, 0x2B]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x6, 0x2B)]], indirect=True)
