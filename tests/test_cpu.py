@@ -18,8 +18,8 @@ def registers():
 
 class TestRegisters:
     def test_set(self, registers):
-        registers["0"] = 0b00001111
-        assert registers["0"] == 0b00001111
+        registers[0x0] = 0b00001111
+        assert registers[0x0] == 0b00001111
 
     def test_set_invalid_register(self, registers):
         with pytest.raises(InvalidRegisterError):
@@ -29,14 +29,21 @@ class TestRegisters:
         with pytest.raises(InvalidRegisterError):
             registers["invalid"]
 
-    def test_direct_access(self, registers):
-        registers["0"] = 0b00001111
+    def test_direct_access_get(self, registers):
+        registers[0x0] = 0b00001111
         assert registers.V0 == 0b00001111
 
-    def test_direct_access_get(self, registers):
+    def test_direct_access_set(self, registers):
         registers.V0 = 0b00001111
-        assert registers["0"] == 0b00001111
+        assert registers[0x0] == 0b00001111
 
+    def test_non_numeric_hex_value_set(self, registers):
+        registers[0xA] = 0b00001111
+        assert registers.VA == 0b00001111
+
+    def test_non_numeric_hex_value_get(self, registers):
+        registers.VA = 0b00001111
+        assert registers[0xA] == 0b00001111
 
 class TestOperation:
     def test_clear_screen(self):
@@ -148,13 +155,13 @@ class TestCPUExecute:
     def test_set_register(self, cpu):
         cpu.cycle()
 
-        assert cpu.registers[f"{0x0}"] == 0xC
+        assert cpu.registers[0x0] == 0xC
 
     @pytest.mark.parametrize("memory", [[0x70, 0x09]], indirect=True)
     def test_add(self, cpu):
         cpu.cycle()
 
-        assert cpu.registers[f"{0x0}"] == 0x9
+        assert cpu.registers[0x0] == 0x9
 
     @pytest.mark.parametrize("memory", [[0xA2, 0x2A]], indirect=True)
     def test_set_index(self, cpu):

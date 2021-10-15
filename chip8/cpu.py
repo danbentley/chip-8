@@ -23,16 +23,17 @@ class Registers:
     VE = 0b0
     VF = 0b0
 
-    def __getitem__(self, index: str) -> int:
+    def __getitem__(self, index: int) -> int:
         try:
-            return getattr(self, f"V{index}")
-        except AttributeError as e:
-            raise InvalidRegisterError from e
+            return getattr(self, f"V{index:X}")
+        except (AttributeError, ValueError) as e:
+            raise InvalidRegisterError(f"Attempt to get value from {index}") from e
 
-    def __setitem__(self, index: str, value: int):
-        if not hasattr(self, f"V{index}"):
-            raise InvalidRegisterError
-        setattr(self, f"V{index}", value)
+    def __setitem__(self, index: int, value: int):
+        try:
+            setattr(self, f"V{index:X}", value)
+        except (AttributeError, ValueError) as e:
+            raise InvalidRegisterError(f"Attempt to set value in {index}") from e
 
 
 @dataclass(frozen=True)
