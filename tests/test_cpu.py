@@ -11,6 +11,30 @@ from chip8.display import Display
 from chip8.memory import Memory
 
 
+@pytest.fixture
+def memory(request):
+    rom = request.param
+    memory = Memory()
+    for instruction, location in zip(rom, range(0x200, 0xFFF)):
+        memory[location] = instruction
+    return memory
+
+
+@pytest.fixture
+def registers(request):
+    registers = Registers()
+    try:
+        registers[request.param[0]] = request.param[1]
+    except AttributeError:
+        ...
+    return registers
+
+
+@pytest.fixture
+def cpu(memory, display, registers):
+    return CPU(memory, display, registers)
+
+
 class TestRegisters:
     def test_set(self, registers):
         registers[0x0] = 0b00001111
@@ -122,30 +146,6 @@ def display(monkeypatch):
     monkeypatch.setattr(Display, "clear", mock_clear)
 
     return Display(width=64, height=45, scale=4)
-
-
-@pytest.fixture
-def memory(request):
-    rom = request.param
-    memory = Memory()
-    for instruction, location in zip(rom, range(0x200, 0xFFF)):
-        memory[location] = instruction
-    return memory
-
-
-@pytest.fixture
-def registers(request):
-    registers = Registers()
-    try:
-        registers[request.param[0]] = request.param[1]
-    except AttributeError:
-        ...
-    return registers
-
-
-@pytest.fixture
-def cpu(memory, display, registers):
-    return CPU(memory, display, registers)
 
 
 class TestCPUExecute:
