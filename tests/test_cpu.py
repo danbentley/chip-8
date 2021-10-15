@@ -24,8 +24,12 @@ def memory(request):
 def registers(request):
     registers = Registers()
     try:
-        registers[request.param[0]] = request.param[1]
+        for key, value in request.param:
+            registers[key] = value
+    except TypeError:
+        raise pytest.UsageError("Make sure fixture data for registers is iterable.")
     except AttributeError:
+        # No params on request object, skip
         ...
     return registers
 
@@ -176,28 +180,28 @@ class TestCPUExecute:
         assert cpu.program_counter == 0x228
 
     @pytest.mark.parametrize("memory", [[0x36, 0x2B]], indirect=True)
-    @pytest.mark.parametrize("registers", [(0x6, 0x2B)], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x6, 0x2B)]], indirect=True)
     def test_skip_if_vx_and_nn_are_equal_true(self, cpu):
         cpu.cycle()
 
         assert cpu.program_counter == 0x204
 
     @pytest.mark.parametrize("memory", [[0x36, 0x2B]], indirect=True)
-    @pytest.mark.parametrize("registers", [(0x6, 0x0)], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x6, 0x0)]], indirect=True)
     def test_skip_if_vx_and_nn_are_equal_false(self, cpu):
         cpu.cycle()
 
         assert cpu.program_counter == 0x202
 
     @pytest.mark.parametrize("memory", [[0x45, 0x2A]], indirect=True)
-    @pytest.mark.parametrize("registers", [(0x6, 0x0)], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x6, 0x0)]], indirect=True)
     def test_skip_if_vx_and_nn_are_not_equal_true(self, cpu):
         cpu.cycle()
 
         assert cpu.program_counter == 0x204
 
     @pytest.mark.parametrize("memory", [[0x45, 0x2A]], indirect=True)
-    @pytest.mark.parametrize("registers", [(0x5, 0x2A)], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x5, 0x2A)]], indirect=True)
     def test_skip_if_vx_and_nn_are_not_equal_false(self, cpu):
         cpu.cycle()
 
