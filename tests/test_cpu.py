@@ -11,11 +11,6 @@ from chip8.display import Display
 from chip8.memory import Memory
 
 
-@pytest.fixture
-def registers():
-    return Registers()
-
-
 class TestRegisters:
     def test_set(self, registers):
         registers[0x0] = 0b00001111
@@ -45,6 +40,7 @@ class TestRegisters:
         registers.VA = 0b00001111
         assert registers[0xA] == 0b00001111
 
+
 class TestOperation:
     def test_clear_screen(self):
         opcode = 0xE0
@@ -61,6 +57,15 @@ class TestOperation:
 
         assert operation.nibble == Operation.JUMP
         assert operation.nnn == 0x228
+
+    def test_skip_if_vx_and_nn_are_equal(self):
+        opcode = 0x362B
+
+        operation = Operation.decode(opcode)
+
+        assert operation.nibble == Operation.SKIP_IF_VX_AND_NN_ARE_EQUAL
+        assert operation.nn == 0x2B
+        assert operation.x == 0x6
 
     def test_set_register(self):
         opcode = 0x600C
@@ -129,8 +134,18 @@ def memory(request):
 
 
 @pytest.fixture
-def cpu(memory, display):
-    return CPU(memory, display)
+def registers(request):
+    registers = Registers()
+    try:
+        registers[request.param[0]] = request.param[1]
+    except AttributeError:
+        ...
+    return registers
+
+
+@pytest.fixture
+def cpu(memory, display, registers):
+    return CPU(memory, display, registers)
 
 
 class TestCPUExecute:
@@ -150,6 +165,20 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.program_counter == 0x228
+
+    @pytest.mark.parametrize("memory", [[0x36, 0x2B]], indirect=True)
+    @pytest.mark.parametrize("registers", [(0x6, 0x2B)], indirect=True)
+    def test_skip_if_vx_and_nn_are_equal_true(self, cpu):
+        cpu.cycle()
+
+        assert cpu.program_counter == 0x204
+
+    @pytest.mark.parametrize("memory", [[0x36, 0x2B]], indirect=True)
+    @pytest.mark.parametrize("registers", [(0x6, 0x0)], indirect=True)
+    def test_skip_if_vx_and_nn_are_equal_false(self, cpu):
+        cpu.cycle()
+
+        assert cpu.program_counter == 0x202
 
     @pytest.mark.parametrize("memory", [[0x60, 0x0C]], indirect=True)
     def test_set_register(self, cpu):

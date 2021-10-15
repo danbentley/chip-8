@@ -40,6 +40,7 @@ class Registers:
 class Operation:
     CLEAR_SCREEN = 0xE0
     JUMP = 0x1
+    SKIP_IF_VX_AND_NN_ARE_EQUAL = 0x3
     SET_REGISTER = 0x6
     ADD = 0x7
     SET_INDEX = 0xA
@@ -89,10 +90,10 @@ class CPU:
     program_counter = 0x200
     index = 0
 
-    def __init__(self, memory, display):
+    def __init__(self, memory, display, registers):
         self.memory = memory
         self.display = display
-        self.registers = Registers()
+        self.registers = registers
 
     def fetch(self):
         instruction = self.memory[self.program_counter]
@@ -110,6 +111,9 @@ class CPU:
             self.display.clear()
         elif operation.nibble == Operation.JUMP:
             self.program_counter = operation.nnn
+        elif operation.nibble == Operation.SKIP_IF_VX_AND_NN_ARE_EQUAL:
+            if self.registers[operation.x] == operation.nn:
+                self.program_counter += 2
         elif operation.nibble == Operation.SET_REGISTER:
             self.registers[operation.x] = operation.nn
         elif operation.nibble == Operation.ADD:
