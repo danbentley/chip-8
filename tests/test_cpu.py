@@ -104,6 +104,15 @@ class TestOperation:
         assert operation.nn == 0x2A
         assert operation.x == 0x5
 
+    def test_skip_if_vx_and_vy_are_equal(self):
+        opcode = 0x5420
+
+        operation = Operation.decode(opcode)
+
+        assert operation.nibble == Operation.SKIP_IF_VX_AND_VY_ARE_EQUAL
+        assert operation.x == 0x4
+        assert operation.y == 0x2
+
     def test_set_register(self):
         opcode = 0x600C
 
@@ -203,6 +212,20 @@ class TestCPUExecute:
     @pytest.mark.parametrize("memory", [[0x45, 0x2A]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x5, 0x2A)]], indirect=True)
     def test_skip_if_vx_and_nn_are_not_equal_false(self, cpu):
+        cpu.cycle()
+
+        assert cpu.program_counter == 0x202
+
+    @pytest.mark.parametrize("memory", [[0x54, 0x20]], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x4, 0x1), (0x2, 0x1)]], indirect=True)
+    def test_skip_if_vx_and_vy_are_equal_true(self, cpu):
+        cpu.cycle()
+
+        assert cpu.program_counter == 0x204
+
+    @pytest.mark.parametrize("memory", [[0x54, 0x20]], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x4, 0x1), (0x2, 0x0)]], indirect=True)
+    def test_skip_if_vx_and_vy_are_equal_false(self, cpu):
         cpu.cycle()
 
         assert cpu.program_counter == 0x202

@@ -42,6 +42,7 @@ class Operation:
     JUMP = 0x1
     SKIP_IF_VX_AND_NN_ARE_EQUAL = 0x3
     SKIP_IF_VX_AND_NN_ARE_NOT_EQUAL = 0x4
+    SKIP_IF_VX_AND_VY_ARE_EQUAL = 0x5
     SET_REGISTER = 0x6
     ADD = 0x7
     SET_INDEX = 0xA
@@ -117,6 +118,9 @@ class CPU:
                 self.program_counter += 2
         elif operation.nibble == Operation.SKIP_IF_VX_AND_NN_ARE_NOT_EQUAL:
             if self.registers[operation.x] != operation.nn:
+                self.program_counter += 2
+        elif operation.nibble == Operation.SKIP_IF_VX_AND_VY_ARE_EQUAL:
+            if self.registers[operation.x] == self.registers[operation.y]:
                 self.program_counter += 2
         elif operation.nibble == Operation.SET_REGISTER:
             self.registers[operation.x] = operation.nn
