@@ -1,6 +1,32 @@
 from enum import Enum
 
 
+class FontLookup(Enum):
+    ZERO = "0"
+    ONE = "1"
+    TWO = "2"
+    THREE = "3"
+    FOUR = "4"
+    FIVE = "5"
+    SIX = "6"
+    SEVEN = "7"
+    EIGHT = "8"
+    NINE = "9"
+    A = "A"
+    B = "B"
+    C = "C"
+    D = "D"
+    E = "E"
+    F = "F"
+
+    @classmethod
+    def key_for_character(cls, character: str) -> str:
+        try:
+            return next(k for k, v in cls.__members__.items() if v.value == character)
+        except StopIteration as e:
+            raise Exception(f'Unable to find key for "{character}"') from e
+
+
 class Font(Enum):
     """Preloaded font font CHIP-8 intepretor.
 
@@ -31,5 +57,10 @@ class Font(Enum):
     F = [0xF0, 0x80, 0xF0, 0x80, 0x80]
 
     @classmethod
-    def to_sprite(cls, font):
-        return [f"{n:04b}" for n in font.value]
+    def to_sprite(cls, font) -> list[str]:
+        return [f"{n:08b}" for n in font.value]
+
+    @classmethod
+    def mapping_for_character(cls, character: int) -> list[str]:
+        key = FontLookup.key_for_character(f"{character:X}")
+        return cls[key].value

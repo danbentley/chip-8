@@ -1,4 +1,6 @@
-from chip8.fonts import Font
+import pytest
+
+from chip8.fonts import Font, FontLookup
 
 
 class TestSprite:
@@ -177,3 +179,29 @@ class TestSprite:
         ]
 
         assert output == Font.to_sprite(Font.F)
+
+
+class TestFontLookup:
+    def test_zero(self):
+        assert FontLookup.key_for_character("0") == "ZERO"
+
+    def test_letter(self):
+        assert FontLookup.key_for_character("A") == "A"
+
+    def test_invalid(self):
+        with pytest.raises(Exception) as e:
+            FontLookup.key_for_character("invalid")
+        assert str(e.value) == 'Unable to find key for "invalid"'
+
+
+class TestFont:
+    def test_zero(self):
+        assert Font.mapping_for_character(0x0) == [0xF0, 0x90, 0x90, 0x90, 0xF0]
+
+    def test_letter(self):
+        assert Font.mapping_for_character(0xA) == [0xF0, 0x90, 0xF0, 0x90, 0x90]
+
+    def test_invalid(self):
+        with pytest.raises(Exception) as e:
+            assert Font.mapping_for_character(0xFF)
+        assert str(e.value) == 'Unable to find key for "FF"'

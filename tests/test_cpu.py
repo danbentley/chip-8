@@ -6,8 +6,10 @@ from chip8.cpu import (
     Operation,
     CPU,
     UnhandledOperationError,
+    FONT_ADDRESS_START,
 )
 from chip8.display import Display
+from chip8.fonts import Font
 from chip8.memory import Memory
 
 
@@ -166,6 +168,15 @@ class TestOperation:
         assert operation.y == 0x1
         assert operation.n == 0xF
 
+    def test_font(self):
+        opcode = 0xF329
+
+        operation = Operation.decode(opcode)
+
+        assert operation.nibble == Operation.FONT[0]
+        assert operation.nn == Operation.FONT[1]
+        assert operation.x == 0x3
+
 
 @pytest.fixture
 def display(monkeypatch):
@@ -292,3 +303,12 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.display.draw_sprite.called is True
+
+    @pytest.mark.parametrize("memory", [[0xF3, 0x29]], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x3, 0x1), (0x6, 0x1)]], indirect=True)
+    def test_font(self, cpu):
+        cpu.memory[FONT_ADDRESS_START: FONT_ADDRESS_START + 5] = Font.ONE.value
+
+        cpu.cycle()
+
+        assert cpu.index == FONT_ADDRESS_START

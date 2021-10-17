@@ -2,6 +2,12 @@ from collections import deque
 
 from dataclasses import dataclass
 
+from chip8.fonts import Font
+
+
+FONT_ADDRESS_START = 0x050
+FONT_ADDRESS_END = 0x0A0
+
 
 class InvalidRegisterError(Exception):
     ...
@@ -51,6 +57,7 @@ class Operation:
     SKIP_IF_VX_AND_VY_ARE_NOT_EQUAL = 0x9
     SET_INDEX = 0xA
     DISPLAY = 0xD
+    FONT = (0xF, 0x29)
 
     x: int
     y: int
@@ -139,6 +146,8 @@ class CPU:
         elif operation.nibble == Operation.SKIP_IF_VX_AND_VY_ARE_NOT_EQUAL:
             if self.registers[operation.x] != self.registers[operation.y]:
                 self.program_counter += 2
+        elif operation.nibble == Operation.SET_INDEX:
+            self.index = operation.nnn
         elif operation.nibble == Operation.DISPLAY:
             sprite = [
                 self.memory[i] for i in range(self.index, self.index + operation.n)
@@ -146,8 +155,16 @@ class CPU:
             self.display.draw_sprite(
                 sprite, self.registers[operation.x], self.registers[operation.y]
             )
-        elif operation.nibble == Operation.SET_INDEX:
-            self.index = operation.nnn
+        elif (
+            operation.nibble == Operation.FONT[0] and operation.nn == Operation.FONT[1]
+        ):
+            character = self.registers[operation.x]
+            sprite = Font.mapping_for_character(character)
+            self.index = next(
+                location
+                for location in range(FONT_ADDRESS_START, FONT_ADDRESS_END, 5)
+                if self.memory[location : location + 5] == sprite
+            )
         else:
             raise UnhandledOperationError(
                 f"Unhandled operation for opcode: {hex(operation.opcode)}",
