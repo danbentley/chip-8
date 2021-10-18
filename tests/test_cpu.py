@@ -73,12 +73,12 @@ class TestRegisters:
 
 class TestOperation:
     def test_clear_screen(self):
-        opcode = 0xE0
+        opcode = 0x0E0
 
         operation = Operation.decode(opcode)
 
-        assert operation.low == Operation.CLEAR_SCREEN
-        assert operation.nibble == 0x0
+        assert operation.nibble == Operation.CLEAR_SCREEN[0]
+        assert operation.nn == Operation.CLEAR_SCREEN[1]
 
     def test_jump(self):
         opcode = 0x1228

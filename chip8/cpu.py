@@ -46,7 +46,7 @@ class Registers:
 
 @dataclass(frozen=True)
 class Operation:
-    CLEAR_SCREEN = 0xE0
+    CLEAR_SCREEN = (0x0, 0xE0)
     JUMP = 0x1
     CALL = 0x2
     SKIP_IF_VX_AND_NN_ARE_EQUAL = 0x3
@@ -122,7 +122,10 @@ class CPU:
         return Operation.decode(opcode)
 
     def execute(self, operation):
-        if operation.low == Operation.CLEAR_SCREEN:
+        if (
+            operation.nibble == Operation.CLEAR_SCREEN[0]
+            and operation.nn == Operation.CLEAR_SCREEN[1]
+        ):
             self.display.clear()
         elif operation.nibble == Operation.JUMP:
             self.program_counter = operation.nnn
