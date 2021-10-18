@@ -54,6 +54,7 @@ class Operation:
     SKIP_IF_VX_AND_VY_ARE_EQUAL = 0x5
     SET_REGISTER = 0x6
     ADD = 0x7
+    SET_VX = 0x8
     SKIP_IF_VX_AND_VY_ARE_NOT_EQUAL = 0x9
     SET_INDEX = 0xA
     DISPLAY = 0xD
@@ -146,6 +147,8 @@ class CPU:
             self.registers[operation.x] = operation.nn
         elif operation.nibble == Operation.ADD:
             self.registers[operation.x] += operation.nn
+        elif operation.nibble == Operation.SET_VX:
+            self.registers[operation.x] = self.registers[operation.y]
         elif operation.nibble == Operation.SKIP_IF_VX_AND_VY_ARE_NOT_EQUAL:
             if self.registers[operation.x] != self.registers[operation.y]:
                 self.program_counter += 2
