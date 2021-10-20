@@ -151,11 +151,12 @@ class TestOperation:
         assert operation.nn.value == 0x9
 
     def test_set_vx(self):
-        opcode = 0x8565
+        opcode = 0x8560
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SET_VX
+        assert operation.nibble == Operation.SET_VX[0]
+        assert operation.n == Operation.SET_VX[1]
         assert operation.x == 0x5
         assert operation.y == 0x6
 
@@ -308,7 +309,7 @@ class TestCPUExecute:
 
         assert cpu.registers[0x0].value == c_uint8(0x9).value
 
-    @pytest.mark.parametrize("memory", [[0x85, 0x65]], indirect=True)
+    @pytest.mark.parametrize("memory", [[0x85, 0x60]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x5, 0x1), (0x6, 0x0)]], indirect=True)
     def test_set_vx(self, cpu):
         cpu.cycle()
