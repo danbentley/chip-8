@@ -1,3 +1,4 @@
+from ctypes import c_uint8
 import pytest
 
 from chip8.cpu import (
@@ -27,7 +28,7 @@ def registers(request):
     registers = Registers()
     try:
         for key, value in request.param:
-            registers[key] = value
+            registers[key] = c_uint8(value)
     except TypeError:
         raise pytest.UsageError("Make sure fixture data for registers is iterable.")
     except AttributeError:
@@ -78,7 +79,7 @@ class TestOperation:
         operation = Operation.decode(opcode)
 
         assert operation.nibble == Operation.CLEAR_SCREEN[0]
-        assert operation.nn == Operation.CLEAR_SCREEN[1]
+        assert operation.nn.value == Operation.CLEAR_SCREEN[1]
 
     def test_jump(self):
         opcode = 0x1228
@@ -102,7 +103,7 @@ class TestOperation:
         operation = Operation.decode(opcode)
 
         assert operation.nibble == Operation.SKIP_IF_VX_AND_NN_ARE_EQUAL
-        assert operation.nn == 0x2B
+        assert operation.nn.value == 0x2B
         assert operation.x == 0x6
 
     def test_skip_if_vx_and_nn_are_not_equal(self):
@@ -111,7 +112,7 @@ class TestOperation:
         operation = Operation.decode(opcode)
 
         assert operation.nibble == Operation.SKIP_IF_VX_AND_NN_ARE_NOT_EQUAL
-        assert operation.nn == 0x2A
+        assert operation.nn.value == 0x2A
         assert operation.x == 0x5
 
     def test_skip_if_vx_and_vy_are_equal(self):
@@ -130,7 +131,7 @@ class TestOperation:
 
         assert operation.nibble == Operation.SET_REGISTER
         assert operation.x == 0x0
-        assert operation.nn == 0xC
+        assert operation.nn.value == 0xC
 
     def test_add(self):
         opcode = 0x7009
@@ -139,7 +140,7 @@ class TestOperation:
 
         assert operation.nibble == Operation.ADD
         assert operation.x == 0x0
-        assert operation.nn == 0x9
+        assert operation.nn.value == 0x9
 
     def test_set_vx(self):
         opcode = 0x8565
@@ -165,7 +166,7 @@ class TestOperation:
         operation = Operation.decode(opcode)
 
         assert operation.nibble == Operation.SET_INDEX
-        assert operation.nn == 0x2A
+        assert operation.nn.value == 0x2A
 
     def test_display(self):
         opcode = 0xD01F
@@ -183,7 +184,7 @@ class TestOperation:
         operation = Operation.decode(opcode)
 
         assert operation.nibble == Operation.FONT[0]
-        assert operation.nn == Operation.FONT[1]
+        assert operation.nn.value == Operation.FONT[1]
         assert operation.x == 0x3
 
 
@@ -279,13 +280,13 @@ class TestCPUExecute:
     def test_set_register(self, cpu):
         cpu.cycle()
 
-        assert cpu.registers[0x0] == 0xC
+        assert cpu.registers[0x0].value == c_uint8(0xC).value
 
     @pytest.mark.parametrize("memory", [[0x70, 0x09]], indirect=True)
     def test_add(self, cpu):
         cpu.cycle()
 
-        assert cpu.registers[0x0] == 0x9
+        assert cpu.registers[0x0].value == c_uint8(0x9).value
 
     @pytest.mark.parametrize("memory", [[0x85, 0x65]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x5, 0x1), (0x6, 0x0)]], indirect=True)

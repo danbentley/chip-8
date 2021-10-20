@@ -1,3 +1,5 @@
+from ctypes import c_uint8
+
 from collections import deque
 
 from dataclasses import dataclass
@@ -14,30 +16,39 @@ class InvalidRegisterError(Exception):
 
 
 class Registers:
-    V0 = 0b0
-    V1 = 0b0
-    V2 = 0b0
-    V3 = 0b0
-    V4 = 0b0
-    V5 = 0b0
-    V6 = 0b0
-    V7 = 0b0
-    V8 = 0b0
-    V9 = 0b0
-    VA = 0b0
-    VB = 0b0
-    VC = 0b0
-    VD = 0b0
-    VE = 0b0
-    VF = 0b0
+    """Class managing Chip-8's 16 general purpose regisers.
 
-    def __getitem__(self, index: int) -> int:
+    Referenced as Vx where x is a hex number. Registers are accessed using
+    subscription, passing the register's hex number. Stored values should be
+    one byte in length.
+
+    VF is used by the intepretor as a flag.
+    """
+
+    V0: c_uint8 = c_uint8(0b0)
+    V1: c_uint8 = c_uint8(0b0)
+    V2: c_uint8 = c_uint8(0b0)
+    V3: c_uint8 = c_uint8(0b0)
+    V4: c_uint8 = c_uint8(0b0)
+    V5: c_uint8 = c_uint8(0b0)
+    V6: c_uint8 = c_uint8(0b0)
+    V7: c_uint8 = c_uint8(0b0)
+    V8: c_uint8 = c_uint8(0b0)
+    V9: c_uint8 = c_uint8(0b0)
+    VA: c_uint8 = c_uint8(0b0)
+    VB: c_uint8 = c_uint8(0b0)
+    VC: c_uint8 = c_uint8(0b0)
+    VD: c_uint8 = c_uint8(0b0)
+    VE: c_uint8 = c_uint8(0b0)
+    VF: c_uint8 = c_uint8(0b0)
+
+    def __getitem__(self, index: int) -> c_uint8:
         try:
             return getattr(self, f"V{index:X}")
         except (AttributeError, ValueError) as e:
             raise InvalidRegisterError(f"Attempt to get value from {index}") from e
 
-    def __setitem__(self, index: int, value: int):
+    def __setitem__(self, index: int, value: c_uint8):
         try:
             setattr(self, f"V{index:X}", value)
         except (AttributeError, ValueError) as e:
@@ -66,7 +77,7 @@ class Operation:
     high: int
     low: int
     n: int
-    nn: int
+    nn: c_uint8
     nnn: int
     opcode: int
 
@@ -78,7 +89,7 @@ class Operation:
         y = low >> 4
         x = high & 0xF
         n = opcode & 0x0F
-        nn = opcode & 0x0FF
+        nn = c_uint8(opcode & 0x0FF)
         nnn = opcode & 0x0FFF
 
         return cls(
@@ -125,7 +136,7 @@ class CPU:
     def execute(self, operation):
         if (
             operation.nibble == Operation.CLEAR_SCREEN[0]
-            and operation.nn == Operation.CLEAR_SCREEN[1]
+            and operation.nn.value == Operation.CLEAR_SCREEN[1]
         ):
             self.display.clear()
         elif operation.nibble == Operation.JUMP:
@@ -135,22 +146,24 @@ class CPU:
             self.stack.append(self.program_counter)
             self.program_counter = operation.nnn
         elif operation.nibble == Operation.SKIP_IF_VX_AND_NN_ARE_EQUAL:
-            if self.registers[operation.x] == operation.nn:
+            if self.registers[operation.x].value == operation.nn.value:
                 self.program_counter += 2
         elif operation.nibble == Operation.SKIP_IF_VX_AND_NN_ARE_NOT_EQUAL:
-            if self.registers[operation.x] != operation.nn:
+            if self.registers[operation.x].value != operation.nn.value:
                 self.program_counter += 2
         elif operation.nibble == Operation.SKIP_IF_VX_AND_VY_ARE_EQUAL:
-            if self.registers[operation.x] == self.registers[operation.y]:
+            if self.registers[operation.x].value == self.registers[operation.y].value:
                 self.program_counter += 2
         elif operation.nibble == Operation.SET_REGISTER:
             self.registers[operation.x] = operation.nn
         elif operation.nibble == Operation.ADD:
-            self.registers[operation.x] += operation.nn
+            self.registers[operation.x] = c_uint8(
+                self.registers[operation.x].value + operation.nn.value
+            )
         elif operation.nibble == Operation.SET_VX:
             self.registers[operation.x] = self.registers[operation.y]
         elif operation.nibble == Operation.SKIP_IF_VX_AND_VY_ARE_NOT_EQUAL:
-            if self.registers[operation.x] != self.registers[operation.y]:
+            if self.registers[operation.x].value != self.registers[operation.y].value:
                 self.program_counter += 2
         elif operation.nibble == Operation.SET_INDEX:
             self.index = operation.nnn
@@ -159,12 +172,14 @@ class CPU:
                 self.memory[i] for i in range(self.index, self.index + operation.n)
             ]
             self.display.draw_sprite(
-                sprite, self.registers[operation.x], self.registers[operation.y]
+                sprite,
+                self.registers[operation.x].value,
+                self.registers[operation.y].value,
             )
         elif (
-            operation.nibble == Operation.FONT[0] and operation.nn == Operation.FONT[1]
+            operation.nibble == Operation.FONT[0] and operation.nn.value == Operation.FONT[1]
         ):
-            character = self.registers[operation.x]
+            character = self.registers[operation.x].value
             sprite = Font.mapping_for_character(character)
             self.index = next(
                 location
