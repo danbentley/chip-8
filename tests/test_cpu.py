@@ -81,6 +81,14 @@ class TestOperation:
         assert operation.nibble == Operation.CLEAR_SCREEN[0]
         assert operation.nn.value == Operation.CLEAR_SCREEN[1]
 
+    def test_return(self):
+        opcode = 0x0EE
+
+        operation = Operation.decode(opcode)
+
+        assert operation.nibble == Operation.RETURN[0]
+        assert operation.nn.value == Operation.RETURN[1]
+
     def test_jump(self):
         opcode = 0x1228
 
@@ -219,6 +227,18 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.display.clear.called is True
+
+    @pytest.mark.parametrize("memory", [[
+        0x22, 0x02, # Operation.CALL to populate stack, call jumps to next item in memory
+        0x22, 0x04, # Operation.CALL to populate stack, call jums to next item in memory
+        0x0, 0xEE, # Operation.RETURN to set the PC to the first address
+    ]], indirect=True)
+    def test_return(self, cpu):
+        cpu.cycle()
+
+        assert cpu.stack_pointer == 0x1
+        assert 0x202 in cpu.stack
+        assert cpu.program_counter == 0x202
 
     @pytest.mark.parametrize("memory", [[0x12, 0x28]], indirect=True)
     def test_jump(self, cpu):

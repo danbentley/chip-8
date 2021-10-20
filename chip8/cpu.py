@@ -58,6 +58,7 @@ class Registers:
 @dataclass(frozen=True)
 class Operation:
     CLEAR_SCREEN = (0x0, 0xE0)
+    RETURN = (0x0, 0xEE)
     JUMP = 0x1
     CALL = 0x2
     SKIP_IF_VX_AND_NN_ARE_EQUAL = 0x3
@@ -115,12 +116,12 @@ class CPU:
     program_counter = 0x200
     index = 0
     stack = deque()
-    stack_pointer = 0x0
 
     def __init__(self, memory, display, registers):
         self.memory = memory
         self.display = display
         self.registers = registers
+        self.stack_pointer = 0x0
 
     def fetch(self):
         instruction = self.memory[self.program_counter]
@@ -139,6 +140,12 @@ class CPU:
             and operation.nn.value == Operation.CLEAR_SCREEN[1]
         ):
             self.display.clear()
+        elif (
+            operation.nibble == Operation.RETURN[0]
+            and operation.nn.value == Operation.RETURN[1]
+        ):
+            self.program_counter = self.stack.popleft()
+            self.stack_pointer -= 1
         elif operation.nibble == Operation.JUMP:
             self.program_counter = operation.nnn
         elif operation.nibble == Operation.CALL:
