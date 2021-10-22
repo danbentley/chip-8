@@ -220,6 +220,16 @@ class TestOperation:
         assert operation.x == 0x5
         assert operation.y == 0x6
 
+    def test_set_vx_to_vy_sub_vx(self):
+        opcode = 0x8567
+
+        operation = Operation.decode(opcode)
+
+        assert operation.nibble == Operation.SET_VX_TO_VY_SUB_VX[0]
+        assert operation.n == Operation.SET_VX_TO_VY_SUB_VX[1]
+        assert operation.x == 0x5
+        assert operation.y == 0x6
+
     def test_shift_vx_left(self):
         opcode = 0x856E
 
@@ -462,6 +472,22 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.registers[0x5].value == c_uint8(0x1).value
+        assert cpu.registers[0xF] == 0
+
+    @pytest.mark.parametrize("memory", [[0x85, 0x67]], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x5, 0x1), (0x6, 0xFF)]], indirect=True)
+    def test_set_vx_to_vy_sub_vx_true(self, cpu):
+        cpu.cycle()
+
+        assert cpu.registers[0x5].value == c_uint8(0xFE).value
+        assert cpu.registers[0xF] == 1
+
+    @pytest.mark.parametrize("memory", [[0x85, 0x67]], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x5, 0xFF), (0x6, 0x1)]], indirect=True)
+    def test_set_vx_to_vy_sub_vx_false(self, cpu):
+        cpu.cycle()
+
+        assert cpu.registers[0x5].value == c_uint8(0x2).value
         assert cpu.registers[0xF] == 0
 
     @pytest.mark.parametrize("memory", [[0x85, 0x6E]], indirect=True)
