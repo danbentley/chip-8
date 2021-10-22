@@ -267,6 +267,24 @@ class TestOperation:
         assert operation.y == 0x1
         assert operation.n == 0xF
 
+    def test_set_delay_timer_to_vx(self):
+        opcode = 0xF515
+
+        operation = Operation.decode(opcode)
+
+        assert operation.nibble == Operation.SET_DELAY_TIMER_TO_VX[0]
+        assert operation.nn.value == Operation.SET_DELAY_TIMER_TO_VX[1]
+        assert operation.x == 0x5
+
+    def test_vx_to_delay_timer(self):
+        opcode = 0xF507
+
+        operation = Operation.decode(opcode)
+
+        assert operation.nibble == Operation.SET_VX_TO_DELAY_TIMER[0]
+        assert operation.nn.value == Operation.SET_VX_TO_DELAY_TIMER[1]
+        assert operation.x == 0x5
+
     def test_font(self):
         opcode = 0xF329
 
@@ -531,6 +549,18 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.display.draw_sprite.called is True
+
+    @pytest.mark.parametrize("memory", [[0xF5, 0x15]], indirect=True)
+    def test_set_delay_timer_to_vx(self, cpu):
+        cpu.cycle()
+
+        assert cpu.registers[0x5].value == cpu.delay_timer.value
+
+    @pytest.mark.parametrize("memory", [[0xF5, 0x07]], indirect=True)
+    def test_set_vx_to_delay_timer(self, cpu):
+        cpu.cycle()
+
+        assert cpu.registers[0x5].value == cpu.delay_timer.value
 
     @pytest.mark.parametrize("memory", [[0xF3, 0x29]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x3, 0x1), (0x6, 0x1)]], indirect=True)

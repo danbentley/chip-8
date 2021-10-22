@@ -78,6 +78,8 @@ class Operation:
     SKIP_IF_VX_AND_VY_ARE_NOT_EQUAL = 0x9
     SET_INDEX = 0xA
     DISPLAY = 0xD
+    SET_DELAY_TIMER_TO_VX = (0xF, 0x15)
+    SET_VX_TO_DELAY_TIMER = (0xF, 0x07)
     FONT = (0xF, 0x29)
 
     x: int
@@ -130,6 +132,7 @@ class CPU:
         self.display = display
         self.registers = registers
         self.stack_pointer = 0x0
+        self.delay_timer = c_uint8(0x0)
 
     def fetch(self):
         instruction = self.memory[self.program_counter]
@@ -265,7 +268,18 @@ class CPU:
                 self.registers[operation.y].value,
             )
         elif (
-            operation.nibble == Operation.FONT[0] and operation.nn.value == Operation.FONT[1]
+            operation.nibble == Operation.SET_DELAY_TIMER_TO_VX[0]
+            and operation.nn.value == Operation.SET_DELAY_TIMER_TO_VX[1]
+        ):
+            self.delay_timer = self.registers[operation.x]
+        elif (
+            operation.nibble == Operation.SET_VX_TO_DELAY_TIMER[0]
+            and operation.nn.value == Operation.SET_VX_TO_DELAY_TIMER[1]
+        ):
+            self.registers[operation.x] = self.delay_timer
+        elif (
+            operation.nibble == Operation.FONT[0]
+            and operation.nn.value == Operation.FONT[1]
         ):
             character = self.registers[operation.x].value
             sprite = Font.mapping_for_character(character)
@@ -281,6 +295,8 @@ class CPU:
             )
 
     def cycle(self):
+        self.delay_timer = c_uint8(self.delay_timer.value - 1)
+
         opcode = self.fetch()
         operation = self.decode(opcode)
         self.execute(operation)
