@@ -210,18 +210,18 @@ class CPU:
             )
             self.registers[operation.x] = c_uint8(total)
             if total >= 255:
-                self.registers[0xF] = 1
+                self.registers[0xF] = c_uint8(1)
             else:
-                self.registers[0xF] = 0
+                self.registers[0xF] = c_uint8(0)
         elif (
             operation.nibble == Operation.SET_VX_TO_VX_SUB_VY[0]
             and operation.n == Operation.SET_VX_TO_VX_SUB_VY[1]
         ):
 
             if self.registers[operation.x].value > self.registers[operation.y].value:
-                self.registers[0xF] = 1
+                self.registers[0xF] = c_uint8(1)
             else:
-                self.registers[0xF] = 0
+                self.registers[0xF] = c_uint8(0)
             self.registers[operation.x] = c_uint8(
                 self.registers[operation.x].value - self.registers[operation.y].value
             )
@@ -231,15 +231,15 @@ class CPU:
         ):
             self.registers[operation.x] = self.registers[operation.y]
             self.registers[operation.x] = c_uint8(self.registers[operation.x].value >> 1)
-            self.registers[0xF] = self.registers[operation.y].value & 0x1
+            self.registers[0xF] = c_uint8(self.registers[operation.y].value & 0x1)
         elif (
             operation.nibble == Operation.SET_VX_TO_VY_SUB_VX[0]
             and operation.n == Operation.SET_VX_TO_VY_SUB_VX[1]
         ):
             if self.registers[operation.y].value > self.registers[operation.x].value:
-                self.registers[0xF] = 1
+                self.registers[0xF] = c_uint8(1)
             else:
-                self.registers[0xF] = 0
+                self.registers[0xF] = c_uint8(0)
             self.registers[operation.x] = c_uint8(
                 self.registers[operation.y].value - self.registers[operation.x].value
             )
@@ -249,7 +249,7 @@ class CPU:
         ):
             self.registers[operation.x] = self.registers[operation.y]
             self.registers[operation.x] = c_uint8(self.registers[operation.x].value << 1)
-            self.registers[0xF] = self.registers[operation.y].value & 0x1
+            self.registers[0xF] = c_uint8(self.registers[operation.y].value & 0x1)
         elif operation.nibble == Operation.SKIP_IF_VX_AND_VY_ARE_NOT_EQUAL:
             if self.registers[operation.x].value != self.registers[operation.y].value:
                 self.program_counter += 2

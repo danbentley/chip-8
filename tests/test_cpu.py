@@ -432,7 +432,7 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.registers[0x5].value == c_uint8(0x0).value
-        assert cpu.registers[0xF] == 1
+        assert cpu.registers[0xF].value == c_uint8(1).value
 
     @pytest.mark.parametrize("memory", [[0x85, 0x64]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x5, 0x0), (0x6, 0x1)]], indirect=True)
@@ -440,7 +440,7 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.registers[0x5].value == c_uint8(0x1).value
-        assert cpu.registers[0xF] == 0
+        assert cpu.registers[0xF].value == c_uint8(0).value
 
     @pytest.mark.parametrize("memory", [[0x85, 0x65]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x5, 0xFF), (0x6, 0x1)]], indirect=True)
@@ -448,7 +448,7 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.registers[0x5].value == c_uint8(0xFE).value
-        assert cpu.registers[0xF] == 1
+        assert cpu.registers[0xF].value == c_uint8(1).value
 
     @pytest.mark.parametrize("memory", [[0x85, 0x65]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x5, 0x1), (0x6, 0xFF)]], indirect=True)
@@ -456,7 +456,7 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.registers[0x5].value == c_uint8(0x2).value
-        assert cpu.registers[0xF] == 0
+        assert cpu.registers[0xF].value == c_uint8(0).value
 
     @pytest.mark.parametrize("memory", [[0x85, 0x66]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x5, 0x1), (0x6, 0x3)]], indirect=True)
@@ -464,7 +464,7 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.registers[0x5].value == c_uint8(0x1).value
-        assert cpu.registers[0xF] == 1
+        assert cpu.registers[0xF].value == c_uint8(1).value
 
     @pytest.mark.parametrize("memory", [[0x85, 0x66]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x5, 0x1), (0x6, 0x2)]], indirect=True)
@@ -472,7 +472,7 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.registers[0x5].value == c_uint8(0x1).value
-        assert cpu.registers[0xF] == 0
+        assert cpu.registers[0xF].value == c_uint8(0).value
 
     @pytest.mark.parametrize("memory", [[0x85, 0x67]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x5, 0x1), (0x6, 0xFF)]], indirect=True)
@@ -480,7 +480,7 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.registers[0x5].value == c_uint8(0xFE).value
-        assert cpu.registers[0xF] == 1
+        assert cpu.registers[0xF].value == c_uint8(1).value
 
     @pytest.mark.parametrize("memory", [[0x85, 0x67]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x5, 0xFF), (0x6, 0x1)]], indirect=True)
@@ -488,7 +488,7 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.registers[0x5].value == c_uint8(0x2).value
-        assert cpu.registers[0xF] == 0
+        assert cpu.registers[0xF].value == c_uint8(0).value
 
     @pytest.mark.parametrize("memory", [[0x85, 0x6E]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x5, 0x1), (0x6, 0x3)]], indirect=True)
@@ -496,7 +496,7 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.registers[0x5].value == c_uint8(0x6).value
-        assert cpu.registers[0xF] == 1
+        assert cpu.registers[0xF].value == c_uint8(1).value
 
     @pytest.mark.parametrize("memory", [[0x85, 0x6E]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x5, 0x1), (0x6, 0x2)]], indirect=True)
@@ -504,7 +504,7 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.registers[0x5].value == c_uint8(0x4).value
-        assert cpu.registers[0xF] == 0
+        assert cpu.registers[0xF].value == c_uint8(0).value
 
     @pytest.mark.parametrize("memory", [[0x95, 0x60]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x5, 0x1), (0x6, 0x0)]], indirect=True)
