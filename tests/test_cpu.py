@@ -210,6 +210,26 @@ class TestOperation:
         assert operation.x == 0x5
         assert operation.y == 0x6
 
+    def test_shift_vx_right(self):
+        opcode = 0x8566
+
+        operation = Operation.decode(opcode)
+
+        assert operation.nibble == Operation.SHIFT_VX_RIGHT[0]
+        assert operation.n == Operation.SHIFT_VX_RIGHT[1]
+        assert operation.x == 0x5
+        assert operation.y == 0x6
+
+    def test_shift_vx_left(self):
+        opcode = 0x856E
+
+        operation = Operation.decode(opcode)
+
+        assert operation.nibble == Operation.SHIFT_VX_LEFT[0]
+        assert operation.n == Operation.SHIFT_VX_LEFT[1]
+        assert operation.x == 0x5
+        assert operation.y == 0x6
+
     def test_skip_if_vx_and_vy_are_not_equal(self):
         opcode = 0x9560
 
@@ -426,6 +446,38 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.registers[0x5].value == c_uint8(0x2).value
+        assert cpu.registers[0xF] == 0
+
+    @pytest.mark.parametrize("memory", [[0x85, 0x66]], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x5, 0x1), (0x6, 0x3)]], indirect=True)
+    def test_shift_vx_right_true(self, cpu):
+        cpu.cycle()
+
+        assert cpu.registers[0x5].value == c_uint8(0x1).value
+        assert cpu.registers[0xF] == 1
+
+    @pytest.mark.parametrize("memory", [[0x85, 0x66]], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x5, 0x1), (0x6, 0x2)]], indirect=True)
+    def test_shift_vx_right_false(self, cpu):
+        cpu.cycle()
+
+        assert cpu.registers[0x5].value == c_uint8(0x1).value
+        assert cpu.registers[0xF] == 0
+
+    @pytest.mark.parametrize("memory", [[0x85, 0x6E]], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x5, 0x1), (0x6, 0x3)]], indirect=True)
+    def test_shift_vx_left_true(self, cpu):
+        cpu.cycle()
+
+        assert cpu.registers[0x5].value == c_uint8(0x6).value
+        assert cpu.registers[0xF] == 1
+
+    @pytest.mark.parametrize("memory", [[0x85, 0x6E]], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x5, 0x1), (0x6, 0x2)]], indirect=True)
+    def test_shift_vx_left_false(self, cpu):
+        cpu.cycle()
+
+        assert cpu.registers[0x5].value == c_uint8(0x4).value
         assert cpu.registers[0xF] == 0
 
     @pytest.mark.parametrize("memory", [[0x95, 0x60]], indirect=True)
