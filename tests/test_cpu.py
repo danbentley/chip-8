@@ -303,6 +303,15 @@ class TestOperation:
         assert operation.nn.value == Operation.LOAD_REGISTERS[1]
         assert operation.x == 0x3
 
+    def test_store_registers(self):
+        opcode = 0xF365
+
+        operation = Operation.decode(opcode)
+
+        assert operation.nibble == Operation.STORE_REGISTERS[0]
+        assert operation.nn.value == Operation.STORE_REGISTERS[1]
+        assert operation.x == 0x3
+
 
 @pytest.fixture
 def display(monkeypatch):
@@ -595,4 +604,24 @@ class TestCPUExecute:
         assert cpu.memory[0x2].value == 0x7
         assert cpu.memory[0x3].value == 0x6
         assert cpu.memory[0x4].value == 0x0
+        assert cpu.index == 0x3
+
+    @pytest.mark.parametrize(
+        "memory", [[0xF3, 0x65]], indirect=True
+    )
+    def test_store_registers(self, cpu):
+
+        cpu.index = 0x0
+        cpu.memory[0x0] = c_uint8(0x9)
+        cpu.memory[0x1] = c_uint8(0x8)
+        cpu.memory[0x2] = c_uint8(0x7)
+        cpu.memory[0x3] = c_uint8(0x6)
+
+        cpu.cycle()
+
+        assert cpu.registers[0x0].value == 0x9
+        assert cpu.registers[0x1].value == 0x8
+        assert cpu.registers[0x2].value == 0x7
+        assert cpu.registers[0x3].value == 0x6
+        assert cpu.registers[0x4].value == 0x0
         assert cpu.index == 0x3

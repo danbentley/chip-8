@@ -82,6 +82,7 @@ class Operation:
     SET_VX_TO_DELAY_TIMER = (0xF, 0x07)
     FONT = (0xF, 0x29)
     LOAD_REGISTERS = (0xF, 0x55)
+    STORE_REGISTERS = (0xF, 0x65)
 
     x: int
     y: int
@@ -295,6 +296,13 @@ class CPU:
         ):
             for i in range(0x0, operation.x + 1):
                 self.memory[self.index + i] = self.registers[i]
+            self.index = self.index + operation.x
+        elif (
+            operation.nibble == Operation.STORE_REGISTERS[0]
+            and operation.nn.value == Operation.STORE_REGISTERS[1]
+        ):
+            for i in range(0x0, operation.x + 1):
+                self.registers[i] = self.memory[self.index + i]
             self.index = self.index + operation.x
         else:
             raise UnhandledOperationError(
