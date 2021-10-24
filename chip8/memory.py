@@ -1,3 +1,5 @@
+from ctypes import c_uint8
+
 class InvalidMemoryAddressError(Exception):
     ...
 
@@ -47,15 +49,15 @@ class Memory:
     """
 
     def __init__(self, size=4096):
-        self.memory: list = [0b0] * size
+        self.memory: list = [c_uint8(0x0)] * size
 
-    def __getitem__(self, address: int) -> int:
+    def __getitem__(self, address: int) -> c_uint8:
         try:
             return self.memory[address]
         except IndexError as e:
             raise InvalidMemoryAddressError from e
 
-    def __setitem__(self, address: int, value: int):
+    def __setitem__(self, address: int, value: c_uint8):
         try:
             self.memory[address] = value
         except IndexError as e:
