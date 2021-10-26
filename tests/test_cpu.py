@@ -285,6 +285,15 @@ class TestOperation:
         assert operation.nn.value == Operation.SET_VX_TO_DELAY_TIMER[1]
         assert operation.x == 0x5
 
+    def test_add_vx_to_index(self):
+        opcode = 0xF51E
+
+        operation = Operation.decode(opcode)
+
+        assert operation.nibble == Operation.ADD_VX_TO_INDEX[0]
+        assert operation.nn.value == Operation.ADD_VX_TO_INDEX[1]
+        assert operation.x == 0x5
+
     def test_font(self):
         opcode = 0xF329
 
@@ -588,6 +597,15 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.registers[0x5].value == cpu.delay_timer.value
+
+    @pytest.mark.parametrize("memory", [[0xF3, 0x1E]], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x3, 0x1)]], indirect=True)
+    def test_add_vx_to_index(self, cpu):
+        cpu.index = 0x5
+
+        cpu.cycle()
+
+        assert cpu.index == 6
 
     @pytest.mark.parametrize("memory", [[0xF3, 0x29]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x3, 0x1), (0x6, 0x1)]], indirect=True)

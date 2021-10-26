@@ -80,6 +80,7 @@ class Operation:
     DISPLAY = 0xD
     SET_DELAY_TIMER_TO_VX = (0xF, 0x15)
     SET_VX_TO_DELAY_TIMER = (0xF, 0x07)
+    ADD_VX_TO_INDEX = (0xF, 0x1E)
     FONT = (0xF, 0x29)
     STORE_BINARY_CODED_DECIMAL = (0xF, 0x33)
     LOAD_REGISTERS = (0xF, 0x55)
@@ -282,6 +283,11 @@ class CPU:
             and operation.nn.value == Operation.SET_VX_TO_DELAY_TIMER[1]
         ):
             self.registers[operation.x] = self.delay_timer
+        elif (
+            operation.nibble == Operation.ADD_VX_TO_INDEX[0]
+            and operation.nn.value == Operation.ADD_VX_TO_INDEX[1]
+        ):
+            self.index = self.index + self.registers[operation.x].value
         elif (
             operation.nibble == Operation.FONT[0]
             and operation.nn.value == Operation.FONT[1]
