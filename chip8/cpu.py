@@ -235,9 +235,10 @@ class CPU:
             operation.nibble == Operation.SHIFT_VX_RIGHT[0]
             and operation.n == Operation.SHIFT_VX_RIGHT[1]
         ):
-            self.registers[operation.x] = self.registers[operation.y]
-            self.registers[operation.x] = c_uint8(self.registers[operation.x].value >> 1)
-            self.registers[0xF] = c_uint8(self.registers[operation.y].value & 0x1)
+            self.registers[0xF] = c_uint8(self.registers[operation.x].value & 0x1)
+            self.registers[operation.x] = c_uint8(
+                self.registers[operation.y].value >> 1
+            )
         elif (
             operation.nibble == Operation.SET_VX_TO_VY_SUB_VX[0]
             and operation.n == Operation.SET_VX_TO_VY_SUB_VX[1]

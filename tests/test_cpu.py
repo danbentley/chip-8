@@ -505,15 +505,15 @@ class TestCPUExecute:
 
     @pytest.mark.parametrize("memory", [[0x85, 0x66]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x5, 0x1), (0x6, 0x3)]], indirect=True)
-    def test_shift_vx_right_true(self, cpu):
+    def test_shift_vx_right_with_odd_number(self, cpu):
         cpu.cycle()
 
         assert cpu.registers[0x5].value == c_uint8(0x1).value
         assert cpu.registers[0xF].value == c_uint8(1).value
 
     @pytest.mark.parametrize("memory", [[0x85, 0x66]], indirect=True)
-    @pytest.mark.parametrize("registers", [[(0x5, 0x1), (0x6, 0x2)]], indirect=True)
-    def test_shift_vx_right_false(self, cpu):
+    @pytest.mark.parametrize("registers", [[(0x5, 0x2), (0x6, 0x2)]], indirect=True)
+    def test_shift_vx_right_with_event_number(self, cpu):
         cpu.cycle()
 
         assert cpu.registers[0x5].value == c_uint8(0x1).value
