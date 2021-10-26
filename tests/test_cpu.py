@@ -624,7 +624,6 @@ class TestCPUExecute:
         assert cpu.memory[0x2].value == 0x7
         assert cpu.memory[0x3].value == 0x6
         assert cpu.memory[0x4].value == 0x0
-        assert cpu.index == 0x3
 
     @pytest.mark.parametrize(
         "memory", [[0xF3, 0x65]], indirect=True
@@ -644,4 +643,3 @@ class TestCPUExecute:
         assert cpu.registers[0x2].value == 0x7
         assert cpu.registers[0x3].value == 0x6
         assert cpu.registers[0x4].value == 0x0
-        assert cpu.index == 0x3
