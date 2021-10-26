@@ -257,6 +257,14 @@ class TestOperation:
         assert operation.nibble == Operation.SET_INDEX
         assert operation.nn.value == 0x2A
 
+    def test_random(self):
+        opcode = 0xC22A
+
+        operation = Operation.decode(opcode)
+
+        assert operation.nibble == Operation.RANDOM
+        assert operation.nn.value == 0x2A
+
     def test_display(self):
         opcode = 0xD01F
 
@@ -579,6 +587,12 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.index == 0x22A
+
+    @pytest.mark.parametrize("memory", [[0xC2, 0x2A]], indirect=True)
+    def test_random(self, cpu):
+        cpu.cycle()
+
+        assert cpu.registers != 0x0
 
     @pytest.mark.parametrize("memory", [[0xD0, 0x1F]], indirect=True)
     def test_display(self, cpu):

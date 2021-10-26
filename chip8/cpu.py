@@ -1,4 +1,6 @@
 from ctypes import c_uint8
+from random import random
+import math
 
 from collections import deque
 
@@ -77,6 +79,7 @@ class Operation:
     SHIFT_VX_LEFT = (0x8, 0xE)
     SKIP_IF_VX_AND_VY_ARE_NOT_EQUAL = 0x9
     SET_INDEX = 0xA
+    RANDOM = 0xC
     DISPLAY = 0xD
     SET_DELAY_TIMER_TO_VX = (0xF, 0x15)
     SET_VX_TO_DELAY_TIMER = (0xF, 0x07)
@@ -264,6 +267,10 @@ class CPU:
                 self.program_counter += 2
         elif operation.nibble == Operation.SET_INDEX:
             self.index = operation.nnn
+        elif operation.nibble == Operation.RANDOM:
+            self.registers[operation.x] = c_uint8(
+                math.ceil(random() * 255) & operation.nn.value
+            )
         elif operation.nibble == Operation.DISPLAY:
             sprite = [
                 self.memory[i] for i in range(self.index, self.index + operation.n)
