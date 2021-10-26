@@ -81,6 +81,7 @@ class Operation:
     SET_DELAY_TIMER_TO_VX = (0xF, 0x15)
     SET_VX_TO_DELAY_TIMER = (0xF, 0x07)
     FONT = (0xF, 0x29)
+    STORE_BINARY_CODED_DECIMAL = (0xF, 0x33)
     LOAD_REGISTERS = (0xF, 0x55)
     STORE_REGISTERS = (0xF, 0x65)
 
@@ -290,6 +291,14 @@ class CPU:
                 for location in range(FONT_ADDRESS_START, FONT_ADDRESS_END, 5)
                 if self.memory[location : location + 5] == sprite
             )
+        elif (
+            operation.nibble == Operation.STORE_BINARY_CODED_DECIMAL[0]
+            and operation.nn.value == Operation.STORE_BINARY_CODED_DECIMAL[1]
+        ):
+            value = self.registers[operation.x].value
+            self.memory[self.index : self.index + 3] = [
+                c_uint8(int(i)) for i in str(value)
+            ]
         elif (
             operation.nibble == Operation.LOAD_REGISTERS[0]
             and operation.nn.value == Operation.LOAD_REGISTERS[1]

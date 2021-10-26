@@ -294,6 +294,15 @@ class TestOperation:
         assert operation.nn.value == Operation.FONT[1]
         assert operation.x == 0x3
 
+    def test_binary_coded_decimal(self):
+        opcode = 0xF233
+
+        operation = Operation.decode(opcode)
+
+        assert operation.nibble == Operation.STORE_BINARY_CODED_DECIMAL[0]
+        assert operation.nn.value == Operation.STORE_BINARY_CODED_DECIMAL[1]
+        assert operation.x == 0x2
+
     def test_load_registers(self):
         opcode = 0xF355
 
@@ -588,6 +597,17 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.index == FONT_ADDRESS_START
+
+    @pytest.mark.parametrize("memory", [[0xF3, 0x33]], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x3, 0xFD)]], indirect=True)
+    def test_binary_coded_decimal(self, cpu):
+        cpu.index = 0x0
+
+        cpu.cycle()
+
+        assert cpu.memory[0x0].value == c_uint8(2).value
+        assert cpu.memory[0x1].value == c_uint8(5).value
+        assert cpu.memory[0x2].value == c_uint8(3).value
 
     @pytest.mark.parametrize("memory", [[0xF3, 0x55]], indirect=True)
     @pytest.mark.parametrize(
