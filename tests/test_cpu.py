@@ -536,8 +536,8 @@ class TestCPUExecute:
         assert cpu.registers[0xF].value == c_uint8(0).value
 
     @pytest.mark.parametrize("memory", [[0x85, 0x6E]], indirect=True)
-    @pytest.mark.parametrize("registers", [[(0x5, 0x1), (0x6, 0x3)]], indirect=True)
-    def test_shift_vx_left_true(self, cpu):
+    @pytest.mark.parametrize("registers", [[(0x5, 0xFF), (0x6, 0x3)]], indirect=True)
+    def test_shift_vx_left_with_most_significant_bit_set(self, cpu):
         cpu.cycle()
 
         assert cpu.registers[0x5].value == c_uint8(0x6).value
@@ -545,7 +545,7 @@ class TestCPUExecute:
 
     @pytest.mark.parametrize("memory", [[0x85, 0x6E]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x5, 0x1), (0x6, 0x2)]], indirect=True)
-    def test_shift_vx_left_false(self, cpu):
+    def test_shift_vx_left_with_most_significant_bit_not_set(self, cpu):
         cpu.cycle()
 
         assert cpu.registers[0x5].value == c_uint8(0x4).value

@@ -254,9 +254,10 @@ class CPU:
             operation.nibble == Operation.SHIFT_VX_LEFT[0]
             and operation.n == Operation.SHIFT_VX_LEFT[1]
         ):
-            self.registers[operation.x] = self.registers[operation.y]
-            self.registers[operation.x] = c_uint8(self.registers[operation.x].value << 1)
-            self.registers[0xF] = c_uint8(self.registers[operation.y].value & 0x1)
+            self.registers[0xF] = c_uint8(self.registers[operation.x].value >> 7 & 1)
+            self.registers[operation.x] = c_uint8(
+                self.registers[operation.y].value << 1
+            )
         elif operation.nibble == Operation.SKIP_IF_VX_AND_VY_ARE_NOT_EQUAL:
             if self.registers[operation.x].value != self.registers[operation.y].value:
                 self.program_counter += 2
