@@ -81,6 +81,8 @@ class Operation:
     SET_INDEX = 0xA
     RANDOM = 0xC
     DISPLAY = 0xD
+    SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL = (0xE, 0x9E)
+    SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL = (0xE, 0xA1)
     SET_DELAY_TIMER_TO_VX = (0xF, 0x15)
     SET_VX_TO_DELAY_TIMER = (0xF, 0x07)
     ADD_VX_TO_INDEX = (0xF, 0x1E)
@@ -133,6 +135,7 @@ class CPU:
     program_counter = 0x200
     index = 0
     stack = deque()
+    keycode = None
 
     def __init__(self, memory, display, registers):
         self.memory = memory
@@ -280,6 +283,18 @@ class CPU:
                 self.registers[operation.x].value,
                 self.registers[operation.y].value,
             )
+        elif (
+            operation.nibble == Operation.SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL[0]
+            and operation.nn.value == Operation.SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL[1]
+        ):
+            if self.registers[operation.x].value == self.keycode:
+                self.program_counter += 2
+        elif (
+            operation.nibble == Operation.SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL[0]
+            and operation.nn.value == Operation.SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL[1]
+        ):
+            if self.registers[operation.x].value != self.keycode:
+                self.program_counter += 2
         elif (
             operation.nibble == Operation.SET_DELAY_TIMER_TO_VX[0]
             and operation.nn.value == Operation.SET_DELAY_TIMER_TO_VX[1]

@@ -275,6 +275,24 @@ class TestOperation:
         assert operation.y == 0x1
         assert operation.n == 0xF
 
+    def test_skip_if_vx_and_keycode_are_equal(self):
+        opcode = 0xE59E
+
+        operation = Operation.decode(opcode)
+
+        assert operation.nibble == Operation.SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL[0]
+        assert operation.nn.value == Operation.SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL[1]
+        assert operation.x == 0x5
+
+    def test_skip_if_vx_and_keycode_are_not_equal(self):
+        opcode = 0xE5A1
+
+        operation = Operation.decode(opcode)
+
+        assert operation.nibble == Operation.SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL[0]
+        assert operation.nn.value == Operation.SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL[1]
+        assert operation.x == 0x5
+
     def test_set_delay_timer_to_vx(self):
         opcode = 0xF515
 
@@ -599,6 +617,39 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.display.draw_sprite.called is True
+
+    @pytest.mark.parametrize("memory", [[0xE3, 0x9E]], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x3, 0x5)]], indirect=True)
+    def test_skip_if_vx_and_keycode_are_equal_true(self, cpu):
+        cpu.keycode = 0x5
+
+        cpu.cycle()
+
+        assert cpu.program_counter == 0x204
+
+    @pytest.mark.parametrize("memory", [[0xE3, 0x9E]], indirect=True)
+    def test_skip_if_vx_and_keycode_are_equal_false(self, cpu):
+        cpu.cycle()
+
+        assert cpu.program_counter == 0x202
+
+    @pytest.mark.parametrize("memory", [[0xE3, 0xA1]], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x3, 0x5)]], indirect=True)
+    def test_skip_if_vx_and_keycode_are_not_equal_true(self, cpu):
+        cpu.keycode = 0x5
+
+        cpu.cycle()
+
+        assert cpu.program_counter == 0x202
+
+    @pytest.mark.parametrize("memory", [[0xE3, 0xA1]], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x3, 0x5)]], indirect=True)
+    def test_skip_if_vx_and_keycode_are_not_equal_false(self, cpu):
+        cpu.keycode = 0x0
+
+        cpu.cycle()
+
+        assert cpu.program_counter == 0x204
 
     @pytest.mark.parametrize("memory", [[0xF5, 0x15]], indirect=True)
     def test_set_delay_timer_to_vx(self, cpu):
