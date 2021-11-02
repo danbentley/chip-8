@@ -347,8 +347,9 @@ class CPU:
             )
 
     def cycle(self):
-        self.delay_timer = c_uint8(self.delay_timer.value - 1)
-
         opcode = self.fetch()
         operation = self.decode(opcode)
         self.execute(operation)
+
+        if self.delay_timer.value > 0:
+            self.delay_timer = c_uint8(self.delay_timer.value - 1)
