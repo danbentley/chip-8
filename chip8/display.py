@@ -24,40 +24,37 @@ class Display:
 
         self.screen = pygame.Surface(self.size)
 
-    def set_pixel(self, x, y):
+    def set_pixel(self, x, y) -> bool:
+        is_pixel_already_rendered = self.screen.get_at((x, y)) == Color.WHITE.value
+        color = Color.BLACK.value if is_pixel_already_rendered else Color.WHITE.value
+        self.screen.set_at((x, y), color)
 
-        if x > self.width - 1 or y > self.height - 1:
-            logger.debug(f"Width or height exceeded. Exiting...")
-            return
+        return is_pixel_already_rendered
 
-        if self.screen.get_at((x, y)) == Color.WHITE.value:
-            self.screen.set_at((x, y), Color.BLACK.value)
-        else:
-            self.screen.set_at((x, y), Color.WHITE.value)
+    def draw_sprite(self, sprite, x, y) -> bool:
 
-    def draw_sprite(self, sprite, x, y):
+        does_sprite_overlap = False
 
-        adjusted_x = x if x <= self.width else (x % self.width + 1)
-        adjusted_y = y if y <= self.height else (y % self.height + 1)
-
-        set_y = adjusted_y
-        for line in sprite:
-            set_x = adjusted_x
-            for character in format(line, "08b"):
+        for line_count, line in enumerate(sprite):
+            for char_count, character in enumerate(format(line, "b")):
                 if character == "1":
-                    self.set_pixel(set_x, set_y)
-                set_x = set_x + 1
-                logger.debug(f"draw_sprite: x: {set_x}, y: {set_y}")
-            set_y = set_y + 1
+
+                    wrapped_x = (x + char_count) % self.width
+                    wrapped_y = (y + line_count) % self.height
+
+                    is_pixel_already_rendered = self.set_pixel(wrapped_x, wrapped_y)
+                    if is_pixel_already_rendered:
+                        does_sprite_overlap = True
 
         self.update()
+
+        return does_sprite_overlap
 
     def update(self):
         self.window.blit(
             pygame.transform.scale(self.screen, self.window.get_rect().size), (0, 0)
         )
         pygame.display.flip()
-        logger.error(f"draw")
 
     def clear(self):
         self.screen.fill(Color.BLACK.value)

@@ -617,6 +617,7 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.display.draw_sprite.called is True
+        assert cpu.registers[0xF].value == 0x0
 
     @pytest.mark.parametrize("memory", [[0xE3, 0x9E]], indirect=True)
     @pytest.mark.parametrize("registers", [[(0x3, 0x5)]], indirect=True)

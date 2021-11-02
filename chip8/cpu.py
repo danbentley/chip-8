@@ -278,11 +278,12 @@ class CPU:
             sprite = [
                 self.memory[i] for i in range(self.index, self.index + operation.n)
             ]
-            self.display.draw_sprite(
+            collision = self.display.draw_sprite(
                 sprite,
                 self.registers[operation.x].value,
                 self.registers[operation.y].value,
             )
+            self.registers[0xF] = c_uint8(collision)
         elif (
             operation.nibble == Operation.SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL[0]
             and operation.nn.value == Operation.SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL[1]
