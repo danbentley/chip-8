@@ -302,7 +302,7 @@ class TestOperation:
         assert operation.nn.value == Operation.SET_DELAY_TIMER_TO_VX[1]
         assert operation.x == 0x5
 
-    def test_vx_to_delay_timer(self):
+    def test_set_vx_to_delay_timer(self):
         opcode = 0xF507
 
         operation = Operation.decode(opcode)
