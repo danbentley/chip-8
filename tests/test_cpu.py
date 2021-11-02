@@ -389,26 +389,23 @@ class TestCPUExecute:
 
         assert cpu.display.clear.called is True
 
+    # fmt: off
     @pytest.mark.parametrize(
-        "memory",
-        [
-            [
-                0x22,
-                0x02,  # Operation.CALL to populate stack, call jumps to next item in memory
-                0x22,
-                0x04,  # Operation.CALL to populate stack, call jums to next item in memory
-                0x0,
-                0xEE,  # Operation.RETURN to set the PC to the first address
-            ]
-        ],
-        indirect=True,
+        "memory", [[
+                0x22, 0x02, # Operation.CALL to populate stack, call jumps to next item in memory
+                0x22, 0x04, # Operation.CALL to populate stack, call jumps to next item in memory
+                0x00, 0xEE, # Operation.RETURN to set the PC to the first address
+        ]], indirect=True,
     )
+    # fmt: on
     def test_return(self, cpu):
+        cpu.cycle()
+        cpu.cycle()
         cpu.cycle()
 
         assert cpu.stack_pointer == 0x1
-        assert 0x202 in cpu.stack
-        assert cpu.program_counter == 0x202
+        assert [0x202, 0x204] == list(cpu.stack.values())
+        assert cpu.program_counter == 0x204
 
     @pytest.mark.parametrize("memory", [[0x12, 0x28]], indirect=True)
     def test_jump(self, cpu):
@@ -421,7 +418,7 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.stack_pointer == 0x1
-        assert 0x202 in cpu.stack
+        assert 0x202 in cpu.stack.values()
         assert cpu.program_counter == 0x428
 
     @pytest.mark.parametrize("memory", [[0x36, 0x2B]], indirect=True)

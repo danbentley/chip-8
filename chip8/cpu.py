@@ -2,8 +2,6 @@ from ctypes import c_uint8
 from random import random
 import math
 
-from collections import deque
-
 from dataclasses import dataclass
 
 from chip8.fonts import Font
@@ -132,10 +130,6 @@ class UnhandledOperationError(Exception):
 
 
 class CPU:
-    program_counter = 0x200
-    index = 0
-    stack = deque()
-    keycode = None
 
     def __init__(self, memory, display, registers):
         self.memory = memory
@@ -143,6 +137,10 @@ class CPU:
         self.registers = registers
         self.stack_pointer = 0x0
         self.delay_timer = c_uint8(0x0)
+        self.program_counter = 0x200
+        self.index = 0
+        self.stack = {}
+        self.keycode = None
 
     def fetch(self):
         instruction = self.memory[self.program_counter]
@@ -165,13 +163,13 @@ class CPU:
             operation.nibble == Operation.RETURN[0]
             and operation.nn.value == Operation.RETURN[1]
         ):
-            self.program_counter = self.stack.popleft()
+            self.program_counter = self.stack[self.stack_pointer]
             self.stack_pointer -= 1
         elif operation.nibble == Operation.JUMP:
             self.program_counter = operation.nnn
         elif operation.nibble == Operation.CALL:
             self.stack_pointer += 1
-            self.stack.append(self.program_counter)
+            self.stack[self.stack_pointer] = self.program_counter
             self.program_counter = operation.nnn
         elif operation.nibble == Operation.SKIP_IF_VX_AND_NN_ARE_EQUAL:
             if self.registers[operation.x].value == operation.nn.value:
