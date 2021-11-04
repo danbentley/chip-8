@@ -325,21 +325,19 @@ class CPU:
             and operation.nn.value == Operation.STORE_BINARY_CODED_DECIMAL[1]
         ):
             value = self.registers[operation.x].value
-            self.memory[self.index : self.index + 3] = [
-                c_uint8(int(i)) for i in str(value)
-            ]
+            self.memory[self.index : self.index + 3] = [int(i) for i in str(value)]
         elif (
             operation.nibble == Operation.LOAD_REGISTERS[0]
             and operation.nn.value == Operation.LOAD_REGISTERS[1]
         ):
             for i in range(0x0, operation.x + 1):
-                self.memory[self.index + i] = self.registers[i]
+                self.memory[self.index + i] = self.registers[i].value
         elif (
             operation.nibble == Operation.STORE_REGISTERS[0]
             and operation.nn.value == Operation.STORE_REGISTERS[1]
         ):
             for i in range(0x0, operation.x + 1):
-                self.registers[i] = self.memory[self.index + i]
+                self.registers[i] = c_uint8(self.memory[self.index + i])
         else:
             raise UnhandledOperationError(
                 f"Unhandled operation for opcode: {hex(operation.opcode)}",

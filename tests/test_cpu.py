@@ -686,9 +686,9 @@ class TestCPUExecute:
 
         cpu.cycle()
 
-        assert cpu.memory[0x0].value == c_uint8(2).value
-        assert cpu.memory[0x1].value == c_uint8(5).value
-        assert cpu.memory[0x2].value == c_uint8(3).value
+        assert cpu.memory[0x0] == 2
+        assert cpu.memory[0x1] == 5
+        assert cpu.memory[0x2] == 3
 
     @pytest.mark.parametrize("memory", [[0xF3, 0x55]], indirect=True)
     @pytest.mark.parametrize(
@@ -700,22 +700,20 @@ class TestCPUExecute:
 
         cpu.cycle()
 
-        assert cpu.memory[0x0].value == 0x9
-        assert cpu.memory[0x1].value == 0x8
-        assert cpu.memory[0x2].value == 0x7
-        assert cpu.memory[0x3].value == 0x6
-        assert cpu.memory[0x4].value == 0x0
+        assert cpu.memory[0x0] == 0x9
+        assert cpu.memory[0x1] == 0x8
+        assert cpu.memory[0x2] == 0x7
+        assert cpu.memory[0x3] == 0x6
+        assert cpu.memory[0x4] == 0x0
 
-    @pytest.mark.parametrize(
-        "memory", [[0xF3, 0x65]], indirect=True
-    )
+    @pytest.mark.parametrize("memory", [[0xF3, 0x65]], indirect=True)
     def test_store_registers(self, cpu):
 
         cpu.index = 0x0
-        cpu.memory[0x0] = c_uint8(0x9)
-        cpu.memory[0x1] = c_uint8(0x8)
-        cpu.memory[0x2] = c_uint8(0x7)
-        cpu.memory[0x3] = c_uint8(0x6)
+        cpu.memory[0x0] = 0x9
+        cpu.memory[0x1] = 0x8
+        cpu.memory[0x2] = 0x7
+        cpu.memory[0x3] = 0x6
 
         cpu.cycle()
 

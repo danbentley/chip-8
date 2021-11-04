@@ -49,7 +49,7 @@ class Memory:
     """
 
     def __init__(self, size=4096):
-        self.memory: list = [c_uint8(0x0)] * size
+        self.memory: list = [0x0] * size
 
     def __getitem__(self, address: int) -> c_uint8:
         try:
