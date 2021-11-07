@@ -5,6 +5,7 @@ from chip8.cpu import (
     Registers,
     InvalidRegisterError,
     Operation,
+    OperationType,
     CPU,
     UnhandledOperationError,
     FONT_ADDRESS_START,
@@ -78,283 +79,217 @@ class TestOperation:
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.CLEAR_SCREEN[0]
-        assert operation.nn.value == Operation.CLEAR_SCREEN[1]
+        assert operation.type == OperationType.CLEAR_SCREEN
 
     def test_return(self):
         opcode = 0x0EE
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.RETURN[0]
-        assert operation.nn.value == Operation.RETURN[1]
+        assert operation.type == OperationType.RETURN
 
     def test_jump(self):
         opcode = 0x1228
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.JUMP
-        assert operation.nnn == 0x228
+        assert operation.type == OperationType.JUMP
 
     def test_call(self):
         opcode = 0x2428
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.CALL
-        assert operation.nnn == 0x428
+        assert operation.type == OperationType.CALL
 
     def test_skip_if_vx_and_nn_are_equal(self):
         opcode = 0x362B
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SKIP_IF_VX_AND_NN_ARE_EQUAL
-        assert operation.nn.value == 0x2B
-        assert operation.x == 0x6
+        assert operation.type == OperationType.SKIP_IF_VX_AND_NN_ARE_EQUAL
 
     def test_skip_if_vx_and_nn_are_not_equal(self):
         opcode = 0x452A
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SKIP_IF_VX_AND_NN_ARE_NOT_EQUAL
-        assert operation.nn.value == 0x2A
-        assert operation.x == 0x5
+        assert operation.type == OperationType.SKIP_IF_VX_AND_NN_ARE_NOT_EQUAL
 
     def test_skip_if_vx_and_vy_are_equal(self):
         opcode = 0x5420
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SKIP_IF_VX_AND_VY_ARE_EQUAL
-        assert operation.x == 0x4
-        assert operation.y == 0x2
+        assert operation.type == OperationType.SKIP_IF_VX_AND_VY_ARE_EQUAL
 
     def test_set_register(self):
         opcode = 0x600C
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SET_REGISTER
-        assert operation.x == 0x0
-        assert operation.nn.value == 0xC
+        assert operation.type == OperationType.SET_REGISTER
 
     def test_add(self):
         opcode = 0x7009
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.ADD
-        assert operation.x == 0x0
-        assert operation.nn.value == 0x9
+        assert operation.type == OperationType.ADD
 
     def test_set_vx(self):
         opcode = 0x8560
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SET_VX[0]
-        assert operation.n == Operation.SET_VX[1]
-        assert operation.x == 0x5
-        assert operation.y == 0x6
+        assert operation.type == OperationType.SET_VX
 
     def test_set_vx_to_vx_or_vy(self):
         opcode = 0x8561
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SET_VX_TO_VX_OR_VY[0]
-        assert operation.n == Operation.SET_VX_TO_VX_OR_VY[1]
-        assert operation.x == 0x5
-        assert operation.y == 0x6
+        assert operation.type == OperationType.SET_VX_TO_VX_OR_VY
 
     def test_set_vx_to_vx_and_vy(self):
         opcode = 0x8562
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SET_VX_TO_VX_AND_VY[0]
-        assert operation.n == Operation.SET_VX_TO_VX_AND_VY[1]
-        assert operation.x == 0x5
-        assert operation.y == 0x6
+        assert operation.type == OperationType.SET_VX_TO_VX_AND_VY
 
     def test_set_vx_to_vx_xor_vy(self):
         opcode = 0x8563
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SET_VX_TO_VX_XOR_VY[0]
-        assert operation.n == Operation.SET_VX_TO_VX_XOR_VY[1]
-        assert operation.x == 0x5
-        assert operation.y == 0x6
+        assert operation.type == OperationType.SET_VX_TO_VX_XOR_VY
 
     def test_set_vx_to_vx_add_vy(self):
         opcode = 0x8564
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SET_VX_TO_VX_ADD_VY[0]
-        assert operation.n == Operation.SET_VX_TO_VX_ADD_VY[1]
-        assert operation.x == 0x5
-        assert operation.y == 0x6
+        assert operation.type == OperationType.SET_VX_TO_VX_ADD_VY
 
     def test_set_vx_to_vx_sub_vx(self):
         opcode = 0x8565
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SET_VX_TO_VX_SUB_VY[0]
-        assert operation.n == Operation.SET_VX_TO_VX_SUB_VY[1]
-        assert operation.x == 0x5
-        assert operation.y == 0x6
+        assert operation.type == OperationType.SET_VX_TO_VX_SUB_VY
 
     def test_shift_vx_right(self):
         opcode = 0x8566
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SHIFT_VX_RIGHT[0]
-        assert operation.n == Operation.SHIFT_VX_RIGHT[1]
-        assert operation.x == 0x5
-        assert operation.y == 0x6
+        assert operation.type == OperationType.SHIFT_VX_RIGHT
 
     def test_set_vx_to_vy_sub_vx(self):
         opcode = 0x8567
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SET_VX_TO_VY_SUB_VX[0]
-        assert operation.n == Operation.SET_VX_TO_VY_SUB_VX[1]
-        assert operation.x == 0x5
-        assert operation.y == 0x6
+        assert operation.type == OperationType.SET_VX_TO_VY_SUB_VX
 
     def test_shift_vx_left(self):
         opcode = 0x856E
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SHIFT_VX_LEFT[0]
-        assert operation.n == Operation.SHIFT_VX_LEFT[1]
-        assert operation.x == 0x5
-        assert operation.y == 0x6
+        assert operation.type == OperationType.SHIFT_VX_LEFT
 
     def test_skip_if_vx_and_vy_are_not_equal(self):
         opcode = 0x9560
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SKIP_IF_VX_AND_VY_ARE_NOT_EQUAL
-        assert operation.x == 0x5
-        assert operation.y == 0x6
+        assert operation.type == OperationType.SKIP_IF_VX_AND_VY_ARE_NOT_EQUAL
 
     def test_set_index(self):
         opcode = 0xA22A
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SET_INDEX
-        assert operation.nn.value == 0x2A
+        assert operation.type == OperationType.SET_INDEX
 
     def test_random(self):
         opcode = 0xC22A
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.RANDOM
-        assert operation.nn.value == 0x2A
+        assert operation.type == OperationType.RANDOM
 
     def test_display(self):
         opcode = 0xD01F
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.DISPLAY
-        assert operation.x == 0x0
-        assert operation.y == 0x1
-        assert operation.n == 0xF
+        assert operation.type == OperationType.DISPLAY
 
     def test_skip_if_vx_and_keycode_are_equal(self):
         opcode = 0xE59E
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL[0]
-        assert operation.nn.value == Operation.SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL[1]
-        assert operation.x == 0x5
+        assert operation.type == OperationType.SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL
 
     def test_skip_if_vx_and_keycode_are_not_equal(self):
         opcode = 0xE5A1
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL[0]
-        assert operation.nn.value == Operation.SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL[1]
-        assert operation.x == 0x5
+        assert operation.type == OperationType.SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL
 
     def test_set_delay_timer_to_vx(self):
         opcode = 0xF515
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SET_DELAY_TIMER_TO_VX[0]
-        assert operation.nn.value == Operation.SET_DELAY_TIMER_TO_VX[1]
-        assert operation.x == 0x5
+        assert operation.type == OperationType.SET_DELAY_TIMER_TO_VX
 
     def test_set_vx_to_delay_timer(self):
         opcode = 0xF507
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.SET_VX_TO_DELAY_TIMER[0]
-        assert operation.nn.value == Operation.SET_VX_TO_DELAY_TIMER[1]
-        assert operation.x == 0x5
+        assert operation.type == OperationType.SET_VX_TO_DELAY_TIMER
 
     def test_add_vx_to_index(self):
         opcode = 0xF51E
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.ADD_VX_TO_INDEX[0]
-        assert operation.nn.value == Operation.ADD_VX_TO_INDEX[1]
-        assert operation.x == 0x5
+        assert operation.type == OperationType.ADD_VX_TO_INDEX
 
     def test_font(self):
         opcode = 0xF329
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.FONT[0]
-        assert operation.nn.value == Operation.FONT[1]
-        assert operation.x == 0x3
+        assert operation.type == OperationType.FONT
 
     def test_binary_coded_decimal(self):
         opcode = 0xF233
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.STORE_BINARY_CODED_DECIMAL[0]
-        assert operation.nn.value == Operation.STORE_BINARY_CODED_DECIMAL[1]
-        assert operation.x == 0x2
+        assert operation.type == OperationType.STORE_BINARY_CODED_DECIMAL
 
     def test_load_registers(self):
         opcode = 0xF355
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.LOAD_REGISTERS[0]
-        assert operation.nn.value == Operation.LOAD_REGISTERS[1]
-        assert operation.x == 0x3
+        assert operation.type == OperationType.LOAD_REGISTERS
 
     def test_store_registers(self):
         opcode = 0xF365
 
         operation = Operation.decode(opcode)
 
-        assert operation.nibble == Operation.STORE_REGISTERS[0]
-        assert operation.nn.value == Operation.STORE_REGISTERS[1]
-        assert operation.x == 0x3
+        assert operation.type == OperationType.STORE_REGISTERS
 
 
 @pytest.fixture

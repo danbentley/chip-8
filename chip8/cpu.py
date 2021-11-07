@@ -1,5 +1,7 @@
 from ctypes import c_uint8
 from random import random
+from typing import Optional
+import enum
 import math
 
 from dataclasses import dataclass
@@ -55,39 +57,104 @@ class Registers:
             raise InvalidRegisterError(f"Attempt to set value in {index}") from e
 
 
+class OperationType(enum.Enum):
+    CLEAR_SCREEN = enum.auto()
+    RETURN = enum.auto()
+    JUMP = enum.auto()
+    CALL = enum.auto()
+    SKIP_IF_VX_AND_NN_ARE_EQUAL = enum.auto()
+    SKIP_IF_VX_AND_NN_ARE_NOT_EQUAL = enum.auto()
+    SKIP_IF_VX_AND_VY_ARE_EQUAL = enum.auto()
+    SET_REGISTER = enum.auto()
+    ADD = enum.auto()
+    SET_VX = enum.auto()
+    SET_VX_TO_VX_OR_VY = enum.auto()
+    SET_VX_TO_VX_AND_VY = enum.auto()
+    SET_VX_TO_VX_XOR_VY = enum.auto()
+    SET_VX_TO_VX_ADD_VY = enum.auto()
+    SET_VX_TO_VX_SUB_VY = enum.auto()
+    SHIFT_VX_RIGHT = enum.auto()
+    SET_VX_TO_VY_SUB_VX = enum.auto()
+    SHIFT_VX_LEFT = enum.auto()
+    SKIP_IF_VX_AND_VY_ARE_NOT_EQUAL = enum.auto()
+    SET_INDEX = enum.auto()
+    RANDOM = enum.auto()
+    DISPLAY = enum.auto()
+    SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL = enum.auto()
+    SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL = enum.auto()
+    SET_DELAY_TIMER_TO_VX = enum.auto()
+    SET_SOUND_TIMER_TO_VX = enum.auto()
+    SET_VX_TO_DELAY_TIMER = enum.auto()
+    ADD_VX_TO_INDEX = enum.auto()
+    FONT = enum.auto()
+    STORE_BINARY_CODED_DECIMAL = enum.auto()
+    LOAD_REGISTERS = enum.auto()
+    STORE_REGISTERS = enum.auto()
+
+
+@dataclass(frozen=True)
+class OperationMatchRule:
+    type: OperationType
+
+    nibble: int
+
+    n: Optional[int] = None
+    nn: Optional[int] = None
+
+    def match(self, operation) -> bool:
+
+        if self.nibble != operation.nibble:
+            return False
+
+        if self.n is not None and self.n != operation.n:
+            return False
+
+        if self.nn is not None and self.nn != operation.nn.value:
+            return False
+
+        return True
+
+
+# fmt: off
+rules = [
+    OperationMatchRule(nibble=0x0, nn=0xE0, type=OperationType.CLEAR_SCREEN),
+    OperationMatchRule(nibble=0x0, nn=0xEE, type=OperationType.RETURN),
+    OperationMatchRule(nibble=0x1, type=OperationType.JUMP),
+    OperationMatchRule(nibble=0x2, type=OperationType.CALL),
+    OperationMatchRule(nibble=0x3, type=OperationType.SKIP_IF_VX_AND_NN_ARE_EQUAL),
+    OperationMatchRule(nibble=0x4, type=OperationType.SKIP_IF_VX_AND_NN_ARE_NOT_EQUAL),
+    OperationMatchRule(nibble=0x5, type=OperationType.SKIP_IF_VX_AND_VY_ARE_EQUAL),
+    OperationMatchRule(nibble=0x6, type=OperationType.SET_REGISTER),
+    OperationMatchRule(nibble=0x7, type=OperationType.ADD),
+    OperationMatchRule(nibble=0x8, n=0x0, type=OperationType.SET_VX),
+    OperationMatchRule(nibble=0x8, n=0x1, type=OperationType.SET_VX_TO_VX_OR_VY),
+    OperationMatchRule(nibble=0x8, n=0x2, type=OperationType.SET_VX_TO_VX_AND_VY),
+    OperationMatchRule(nibble=0x8, n=0x3, type=OperationType.SET_VX_TO_VX_XOR_VY),
+    OperationMatchRule(nibble=0x8, n=0x4, type=OperationType.SET_VX_TO_VX_ADD_VY),
+    OperationMatchRule(nibble=0x8, n=0x5, type=OperationType.SET_VX_TO_VX_SUB_VY),
+    OperationMatchRule(nibble=0x8, n=0x6, type=OperationType.SHIFT_VX_RIGHT),
+    OperationMatchRule(nibble=0x8, n=0x7, type=OperationType.SET_VX_TO_VY_SUB_VX),
+    OperationMatchRule(nibble=0x8, n=0xE, type=OperationType.SHIFT_VX_LEFT),
+    OperationMatchRule(nibble=0x9, type=OperationType.SKIP_IF_VX_AND_VY_ARE_NOT_EQUAL),
+    OperationMatchRule(nibble=0xA, type=OperationType.SET_INDEX),
+    OperationMatchRule(nibble=0xC, type=OperationType.RANDOM),
+    OperationMatchRule(nibble=0xD, type=OperationType.DISPLAY),
+    OperationMatchRule(nibble=0xE, nn=0x9E, type=OperationType.SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL),
+    OperationMatchRule(nibble=0xE, nn=0xA1, type=OperationType.SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL),
+    OperationMatchRule(nibble=0xF, nn=0x15, type=OperationType.SET_DELAY_TIMER_TO_VX),
+    OperationMatchRule(nibble=0xF, nn=0x18, type=OperationType.SET_SOUND_TIMER_TO_VX),
+    OperationMatchRule(nibble=0xF, nn=0x07, type=OperationType.SET_VX_TO_DELAY_TIMER),
+    OperationMatchRule(nibble=0xF, nn=0x1E, type=OperationType.ADD_VX_TO_INDEX),
+    OperationMatchRule(nibble=0xF, nn=0x29, type=OperationType.FONT),
+    OperationMatchRule(nibble=0xF, nn=0x33, type=OperationType.STORE_BINARY_CODED_DECIMAL),
+    OperationMatchRule(nibble=0xF, nn=0x55, type=OperationType.LOAD_REGISTERS),
+    OperationMatchRule(nibble=0xF, nn=0x65, type=OperationType.STORE_REGISTERS),
+]
+# fmt: on
+
+
 @dataclass(frozen=True)
 class Operation:
-    CLEAR_SCREEN = (0x0, 0xE0)
-    RETURN = (0x0, 0xEE)
-    JUMP = 0x1
-    CALL = 0x2
-    SKIP_IF_VX_AND_NN_ARE_EQUAL = 0x3
-    SKIP_IF_VX_AND_NN_ARE_NOT_EQUAL = 0x4
-    SKIP_IF_VX_AND_VY_ARE_EQUAL = 0x5
-    SET_REGISTER = 0x6
-    ADD = 0x7
-    SET_VX = (0x8, 0x0)
-    SET_VX_TO_VX_OR_VY = (0x8, 0x1)
-    SET_VX_TO_VX_AND_VY = (0x8, 0x2)
-    SET_VX_TO_VX_XOR_VY = (0x8, 0x3)
-    SET_VX_TO_VX_ADD_VY = (0x8, 0x4)
-    SET_VX_TO_VX_SUB_VY = (0x8, 0x5)
-    SHIFT_VX_RIGHT = (0x8, 0x6)
-    SET_VX_TO_VY_SUB_VX = (0x8, 0x7)
-    SHIFT_VX_LEFT = (0x8, 0xE)
-    SKIP_IF_VX_AND_VY_ARE_NOT_EQUAL = 0x9
-    SET_INDEX = 0xA
-    RANDOM = 0xC
-    DISPLAY = 0xD
-    SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL = (0xE, 0x9E)
-    SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL = (0xE, 0xA1)
-    SET_DELAY_TIMER_TO_VX = (0xF, 0x15)
-    SET_VX_TO_DELAY_TIMER = (0xF, 0x07)
-    ADD_VX_TO_INDEX = (0xF, 0x1E)
-    FONT = (0xF, 0x29)
-    STORE_BINARY_CODED_DECIMAL = (0xF, 0x33)
-    LOAD_REGISTERS = (0xF, 0x55)
-    STORE_REGISTERS = (0xF, 0x65)
 
     x: int
     y: int
@@ -122,6 +189,18 @@ class Operation:
             opcode=opcode,
         )
 
+    @property
+    def type(self):
+        try:
+            rule = next(r for r in rules if r.match(self))
+        except StopIteration as e:
+            raise UnhandledOperationError(
+                f"Unhandled operation for opcode: {hex(self.opcode)}",
+                operation=self,
+            ) from e
+
+        return rule.type
+
 
 class UnhandledOperationError(Exception):
     def __init__(self, *args, operation=None):
@@ -130,7 +209,6 @@ class UnhandledOperationError(Exception):
 
 
 class CPU:
-
     def __init__(self, memory, display, registers):
         self.memory = memory
         self.display = display
@@ -154,68 +232,50 @@ class CPU:
         return Operation.decode(opcode)
 
     def execute(self, operation):
-        if (
-            operation.nibble == Operation.CLEAR_SCREEN[0]
-            and operation.nn.value == Operation.CLEAR_SCREEN[1]
-        ):
+        print(
+            f"{operation.type} {self.index=} VX={self.registers[operation.x]} VY={self.registers[operation.y]} {self.program_counter=} {self.keycode=} {self.delay_timer=} {hex(operation.opcode)=}"
+        )
+        if operation.type == OperationType.CLEAR_SCREEN:
             self.display.clear()
-        elif (
-            operation.nibble == Operation.RETURN[0]
-            and operation.nn.value == Operation.RETURN[1]
-        ):
+        elif operation.type == OperationType.RETURN:
             self.program_counter = self.stack[self.stack_pointer]
             self.stack_pointer -= 1
-        elif operation.nibble == Operation.JUMP:
+        elif operation.type == OperationType.JUMP:
             self.program_counter = operation.nnn
-        elif operation.nibble == Operation.CALL:
+        elif operation.type == OperationType.CALL:
             self.stack_pointer += 1
             self.stack[self.stack_pointer] = self.program_counter
             self.program_counter = operation.nnn
-        elif operation.nibble == Operation.SKIP_IF_VX_AND_NN_ARE_EQUAL:
+        elif operation.type == OperationType.SKIP_IF_VX_AND_NN_ARE_EQUAL:
             if self.registers[operation.x].value == operation.nn.value:
                 self.program_counter += 2
-        elif operation.nibble == Operation.SKIP_IF_VX_AND_NN_ARE_NOT_EQUAL:
+        elif operation.type == OperationType.SKIP_IF_VX_AND_NN_ARE_NOT_EQUAL:
             if self.registers[operation.x].value != operation.nn.value:
                 self.program_counter += 2
-        elif operation.nibble == Operation.SKIP_IF_VX_AND_VY_ARE_EQUAL:
+        elif operation.type == OperationType.SKIP_IF_VX_AND_VY_ARE_EQUAL:
             if self.registers[operation.x].value == self.registers[operation.y].value:
                 self.program_counter += 2
-        elif operation.nibble == Operation.SET_REGISTER:
+        elif operation.type == OperationType.SET_REGISTER:
             self.registers[operation.x] = operation.nn
-        elif operation.nibble == Operation.ADD:
+        elif operation.type == OperationType.ADD:
             self.registers[operation.x] = c_uint8(
                 self.registers[operation.x].value + operation.nn.value
             )
-        elif (
-            operation.nibble == Operation.SET_VX[0]
-            and operation.n == Operation.SET_VX[1]
-        ):
+        elif operation.type == OperationType.SET_VX:
             self.registers[operation.x] = self.registers[operation.y]
-        elif (
-            operation.nibble == Operation.SET_VX_TO_VX_OR_VY[0]
-            and operation.n == Operation.SET_VX_TO_VX_OR_VY[1]
-        ):
+        elif operation.type == OperationType.SET_VX_TO_VX_OR_VY:
             self.registers[operation.x] = c_uint8(
                 self.registers[operation.x].value | self.registers[operation.y].value
             )
-        elif (
-            operation.nibble == Operation.SET_VX_TO_VX_AND_VY[0]
-            and operation.n == Operation.SET_VX_TO_VX_AND_VY[1]
-        ):
+        elif operation.type == OperationType.SET_VX_TO_VX_AND_VY:
             self.registers[operation.x] = c_uint8(
                 self.registers[operation.x].value & self.registers[operation.y].value
             )
-        elif (
-            operation.nibble == Operation.SET_VX_TO_VX_XOR_VY[0]
-            and operation.n == Operation.SET_VX_TO_VX_XOR_VY[1]
-        ):
+        elif operation.type == OperationType.SET_VX_TO_VX_XOR_VY:
             self.registers[operation.x] = c_uint8(
                 self.registers[operation.x].value ^ self.registers[operation.y].value
             )
-        elif (
-            operation.nibble == Operation.SET_VX_TO_VX_ADD_VY[0]
-            and operation.n == Operation.SET_VX_TO_VX_ADD_VY[1]
-        ):
+        elif operation.type == OperationType.SET_VX_TO_VX_ADD_VY:
             total = (
                 self.registers[operation.x].value + self.registers[operation.y].value
             )
@@ -224,10 +284,7 @@ class CPU:
                 self.registers[0xF] = c_uint8(1)
             else:
                 self.registers[0xF] = c_uint8(0)
-        elif (
-            operation.nibble == Operation.SET_VX_TO_VX_SUB_VY[0]
-            and operation.n == Operation.SET_VX_TO_VX_SUB_VY[1]
-        ):
+        elif operation.type == OperationType.SET_VX_TO_VX_SUB_VY:
 
             if self.registers[operation.x].value > self.registers[operation.y].value:
                 self.registers[0xF] = c_uint8(1)
@@ -236,18 +293,12 @@ class CPU:
             self.registers[operation.x] = c_uint8(
                 self.registers[operation.x].value - self.registers[operation.y].value
             )
-        elif (
-            operation.nibble == Operation.SHIFT_VX_RIGHT[0]
-            and operation.n == Operation.SHIFT_VX_RIGHT[1]
-        ):
+        elif operation.type == OperationType.SHIFT_VX_RIGHT:
             self.registers[0xF] = c_uint8(self.registers[operation.x].value & 0x1)
             self.registers[operation.x] = c_uint8(
                 self.registers[operation.y].value >> 1
             )
-        elif (
-            operation.nibble == Operation.SET_VX_TO_VY_SUB_VX[0]
-            and operation.n == Operation.SET_VX_TO_VY_SUB_VX[1]
-        ):
+        elif operation.type == OperationType.SET_VX_TO_VY_SUB_VX:
             if self.registers[operation.y].value > self.registers[operation.x].value:
                 self.registers[0xF] = c_uint8(1)
             else:
@@ -255,24 +306,21 @@ class CPU:
             self.registers[operation.x] = c_uint8(
                 self.registers[operation.y].value - self.registers[operation.x].value
             )
-        elif (
-            operation.nibble == Operation.SHIFT_VX_LEFT[0]
-            and operation.n == Operation.SHIFT_VX_LEFT[1]
-        ):
+        elif operation.type == OperationType.SHIFT_VX_LEFT:
             self.registers[0xF] = c_uint8(self.registers[operation.x].value >> 7 & 1)
             self.registers[operation.x] = c_uint8(
                 self.registers[operation.y].value << 1
             )
-        elif operation.nibble == Operation.SKIP_IF_VX_AND_VY_ARE_NOT_EQUAL:
+        elif operation.type == OperationType.SKIP_IF_VX_AND_VY_ARE_NOT_EQUAL:
             if self.registers[operation.x].value != self.registers[operation.y].value:
                 self.program_counter += 2
-        elif operation.nibble == Operation.SET_INDEX:
+        elif operation.type == OperationType.SET_INDEX:
             self.index = operation.nnn
-        elif operation.nibble == Operation.RANDOM:
+        elif operation.type == OperationType.RANDOM:
             self.registers[operation.x] = c_uint8(
                 math.ceil(random() * 255) & operation.nn.value
             )
-        elif operation.nibble == Operation.DISPLAY:
+        elif operation.type == OperationType.DISPLAY:
             sprite = [
                 self.memory[i] for i in range(self.index, self.index + operation.n)
             ]
@@ -282,37 +330,21 @@ class CPU:
                 self.registers[operation.y].value,
             )
             self.registers[0xF] = c_uint8(collision)
-        elif (
-            operation.nibble == Operation.SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL[0]
-            and operation.nn.value == Operation.SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL[1]
-        ):
+        elif operation.type == OperationType.SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL:
             if self.registers[operation.x].value == self.keycode:
                 self.program_counter += 2
-        elif (
-            operation.nibble == Operation.SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL[0]
-            and operation.nn.value == Operation.SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL[1]
-        ):
+        elif operation.type == OperationType.SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL:
             if self.registers[operation.x].value != self.keycode:
                 self.program_counter += 2
-        elif (
-            operation.nibble == Operation.SET_DELAY_TIMER_TO_VX[0]
-            and operation.nn.value == Operation.SET_DELAY_TIMER_TO_VX[1]
-        ):
+        elif operation.type == OperationType.SET_DELAY_TIMER_TO_VX:
             self.delay_timer = self.registers[operation.x]
-        elif (
-            operation.nibble == Operation.SET_VX_TO_DELAY_TIMER[0]
-            and operation.nn.value == Operation.SET_VX_TO_DELAY_TIMER[1]
-        ):
+        elif operation.type == OperationType.SET_SOUND_TIMER_TO_VX:
+            return
+        elif operation.type == OperationType.SET_VX_TO_DELAY_TIMER:
             self.registers[operation.x] = self.delay_timer
-        elif (
-            operation.nibble == Operation.ADD_VX_TO_INDEX[0]
-            and operation.nn.value == Operation.ADD_VX_TO_INDEX[1]
-        ):
+        elif operation.type == OperationType.ADD_VX_TO_INDEX:
             self.index = self.index + self.registers[operation.x].value
-        elif (
-            operation.nibble == Operation.FONT[0]
-            and operation.nn.value == Operation.FONT[1]
-        ):
+        elif operation.type == OperationType.FONT:
             character = self.registers[operation.x].value
             sprite = Font.mapping_for_character(character)
             self.index = next(
@@ -320,29 +352,20 @@ class CPU:
                 for location in range(FONT_ADDRESS_START, FONT_ADDRESS_END, 5)
                 if self.memory[location : location + 5] == sprite
             )
-        elif (
-            operation.nibble == Operation.STORE_BINARY_CODED_DECIMAL[0]
-            and operation.nn.value == Operation.STORE_BINARY_CODED_DECIMAL[1]
-        ):
+        elif operation.type == OperationType.STORE_BINARY_CODED_DECIMAL:
             value = self.registers[operation.x].value
             self.memory[self.index : self.index + 3] = [int(i) for i in str(value)]
-        elif (
-            operation.nibble == Operation.LOAD_REGISTERS[0]
-            and operation.nn.value == Operation.LOAD_REGISTERS[1]
-        ):
+        elif operation.type == OperationType.LOAD_REGISTERS:
             for i in range(0x0, operation.x + 1):
                 self.memory[self.index + i] = self.registers[i].value
-        elif (
-            operation.nibble == Operation.STORE_REGISTERS[0]
-            and operation.nn.value == Operation.STORE_REGISTERS[1]
-        ):
+        elif operation.type == OperationType.STORE_REGISTERS:
             for i in range(0x0, operation.x + 1):
                 self.registers[i] = c_uint8(self.memory[self.index + i])
         else:
-            raise UnhandledOperationError(
-                f"Unhandled operation for opcode: {hex(operation.opcode)}",
-                operation=operation,
-            )
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.warn(f"unabled operation {operation}")
 
     def cycle(self):
         opcode = self.fetch()
