@@ -1,3 +1,5 @@
+import enum
+
 import pygame
 
 from chip8.memory import Memory
