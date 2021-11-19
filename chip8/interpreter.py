@@ -1,30 +1,9 @@
-import enum
-
-import pygame
-
-from chip8.memory import Memory
-from chip8.fonts import Font
-from chip8.display import Display
-from chip8.cpu import CPU, Registers, FONT_ADDRESS_START, FONT_ADDRESS_END
-
-
-class Keyboard(enum.Enum):
-    ONE = (pygame.K_1, 0x1)
-    TWO = (pygame.K_2, 0x2)
-    THREE = (pygame.K_3, 0x3)
-    FOUR = (pygame.K_4, 0xC)
-    Q = (pygame.K_q, 0x4)
-    W = (pygame.K_w, 0x5)
-    E = (pygame.K_e, 0x6)
-    R = (pygame.K_r, 0xD)
-    A = (pygame.K_a, 0x7)
-    S = (pygame.K_s, 0x8)
-    D = (pygame.K_d, 0x9)
-    F = (pygame.K_f, 0xE)
-    Z = (pygame.K_z, 0xA)
-    X = (pygame.K_x, 0x0)
-    C = (pygame.K_c, 0xB)
-    V = (pygame.K_v, 0xF)
+from .backends.events import EventType
+from .backends.pygame import PyGameBackend, Keyboard
+from .cpu import CPU, Registers, FONT_ADDRESS_START, FONT_ADDRESS_END
+from .display import Display
+from .fonts import Font
+from .memory import Memory
 
 
 class Interpreter:
@@ -32,6 +11,7 @@ class Interpreter:
         self.memory = Memory()
         self.display = Display(width=64, height=32, scale=4)
         self.cpu = CPU(self.memory, self.display, Registers())
+        self.backend = PyGameBackend()
 
     def boot(self):
         fonts = Font.__members__.values()
@@ -48,15 +28,13 @@ class Interpreter:
 
     def run(self):
         while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                if event.type == pygame.KEYDOWN:
+            for event in self.backend.get():
+                if event.type == EventType.KEYDOWN:
                     keycode = None
                     for c in Keyboard:
-                        if c.value[0] == event.key:
+                        if c.value[0] == event.keycode:
                             keycode = c.value[1]
                     self.cpu.keycode = keycode
-                if event.type == pygame.KEYUP:
+                if event.type == EventType.KEYUP:
                     self.cpu.keycode = None
             self.cpu.cycle()
