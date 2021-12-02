@@ -6,24 +6,11 @@ import pygame
 
 from .events import Event, EventType
 
+import logging
 
-class Keyboard(enum.Enum):
-    ONE = (pygame.K_1, 0x1)
-    TWO = (pygame.K_2, 0x2)
-    THREE = (pygame.K_3, 0x3)
-    FOUR = (pygame.K_4, 0xC)
-    Q = (pygame.K_q, 0x4)
-    W = (pygame.K_w, 0x5)
-    E = (pygame.K_e, 0x6)
-    R = (pygame.K_r, 0xD)
-    A = (pygame.K_a, 0x7)
-    S = (pygame.K_s, 0x8)
-    D = (pygame.K_d, 0x9)
-    F = (pygame.K_f, 0xE)
-    Z = (pygame.K_z, 0xA)
-    X = (pygame.K_x, 0x0)
-    C = (pygame.K_c, 0xB)
-    V = (pygame.K_v, 0xF)
+logger = logging.getLogger(__name__)
+logger.setLevel("DEBUG")
+
 
 
 class PyGameBackend:
@@ -35,3 +22,55 @@ class PyGameBackend:
                 yield Event(keycode=event.key, type=EventType.KEYDOWN)
             if event.type == pygame.KEYUP:
                 yield Event(keycode=event.key, type=EventType.KEYUP)
+
+
+class Color(enum.Enum):
+    BLACK = pygame.Color(0, 0, 0)
+    WHITE = pygame.Color(255, 255, 255)
+
+
+class Display:
+    def __init__(self, width, height, scale):
+        self.size = self.width, self.height = width, height
+        self.scale = scale
+
+        self.window = pygame.display.set_mode(
+            (self.width * self.scale, self.height * self.scale), pygame.SCALED, vsync=1
+        )
+
+        self.screen = pygame.Surface(self.size)
+
+    def set_pixel(self, x, y) -> bool:
+        is_pixel_already_rendered = self.screen.get_at((x, y)) == Color.WHITE.value
+        color = Color.BLACK.value if is_pixel_already_rendered else Color.WHITE.value
+        self.screen.set_at((x, y), color)
+
+        return is_pixel_already_rendered
+
+    def draw_sprite(self, sprite, x, y) -> bool:
+
+        does_sprite_overlap = False
+
+        for line_count, line in enumerate(sprite):
+            for char_count, character in enumerate(format(line, "b")):
+                if character == "1":
+
+                    wrapped_x = (x + char_count) % self.width
+                    wrapped_y = (y + line_count) % self.height
+
+                    is_pixel_already_rendered = self.set_pixel(wrapped_x, wrapped_y)
+                    if is_pixel_already_rendered:
+                        does_sprite_overlap = True
+
+        self.update()
+
+        return does_sprite_overlap
+
+    def update(self):
+        self.window.blit(
+            pygame.transform.scale(self.screen, self.window.get_rect().size), (0, 0)
+        )
+        pygame.display.flip()
+
+    def clear(self):
+        self.screen.fill(Color.BLACK.value)
