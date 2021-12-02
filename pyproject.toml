@@ -7,6 +7,7 @@ authors = ["Dan Bentley"]
 [tool.poetry.dependencies]
 python = "^3.10"
 pygame = "^2.0.1"
+PySDL2 = "^0.9.9"
 
 [tool.poetry.dev-dependencies]
 ipdb = "^0.13.7"
