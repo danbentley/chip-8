@@ -3,9 +3,9 @@ from typing import Optional
 import enum
 
 from .backends.events import EventType
-from .backends.pygame import PyGameBackend, Keyboard
+from .backends.pygame import PyGameBackend, Display as PyGameDisplay
+from .backends.pysdl import PySDLBackend, Display as SDLDisplay
 from .cpu import CPU, Registers, FONT_ADDRESS_START, FONT_ADDRESS_END
-from .display import Display
 from .fonts import Font
 from .memory import Memory
 
@@ -67,9 +67,14 @@ class Keyboard(enum.Enum):
 class Interpreter:
     def __init__(self):
         self.memory = Memory()
-        self.display = Display(width=64, height=32, scale=4)
+
+        # self.display = PyGameDisplay(width=64, height=32, scale=4)
+        # self.backend = PyGameBackend()
+
+        self.display = SDLDisplay(width=64, height=32, scale=4)
+        self.backend = PySDLBackend()
+
         self.cpu = CPU(self.memory, self.display, Registers())
-        self.backend = PyGameBackend()
 
     def boot(self):
         fonts = Font.__members__.values()
