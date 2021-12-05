@@ -35,7 +35,7 @@ class Display:
         self.scale = scale
 
         self.window = pygame.display.set_mode(
-            (self.width * self.scale, self.height * self.scale), pygame.SCALED, vsync=1
+            (self.width * self.scale, self.height * self.scale), vsync=1
         )
 
         self.screen = pygame.Surface(self.size)
