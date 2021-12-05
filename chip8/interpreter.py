@@ -62,9 +62,7 @@ class Keyboard(enum.Enum):
 
 
 class Interpreter:
-    def __init__(self, memory, display, backend, cpu):
-        self.memory = memory
-        self.display = display
+    def __init__(self, backend, cpu):
         self.backend = backend
         self.cpu = cpu
 
@@ -73,13 +71,13 @@ class Interpreter:
         for font, location in zip(
             fonts, range(FONT_ADDRESS_START, FONT_ADDRESS_END, 5)
         ):
-            self.memory[location : location + 5] = font.value
+            self.cpu.memory[location : location + 5] = font.value
 
     def load_rom(self, path):
         with open(path, "rb") as f:
             rom = f.read()
             for instruction, location in zip(rom, range(0x200, 0xFFF)):
-                self.memory[location] = instruction
+                self.cpu.memory[location] = instruction
 
     def run(self):
         while True:
