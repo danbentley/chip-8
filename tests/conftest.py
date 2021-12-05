@@ -67,13 +67,13 @@ def display():
 
         def draw_sprite(self, *args, **kwargs):
             self.draw_sprite_called = True
-            return self.draw_sprite_called
+            # Always return False to report no collision
+            return False
 
         draw_sprite_called = False
 
         def clear(self, *args, **kwargs):
             self.clear_called = True
-            return self.clear_called
 
         clear_called = False
 
