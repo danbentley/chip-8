@@ -10,37 +10,8 @@ from chip8.cpu import (
     UnhandledOperationError,
     FONT_ADDRESS_START,
 )
-from chip8.display import Display
 from chip8.fonts import Font
 from chip8.memory import Memory
-
-
-@pytest.fixture
-def memory(request):
-    rom = request.param
-    memory = Memory()
-    for instruction, location in zip(rom, range(0x200, 0xFFF)):
-        memory[location] = instruction
-    return memory
-
-
-@pytest.fixture
-def registers(request):
-    registers = Registers()
-    try:
-        for key, value in request.param:
-            registers[key] = c_uint8(value)
-    except TypeError:
-        raise pytest.UsageError("Make sure fixture data for registers is iterable.")
-    except AttributeError:
-        # No params on request object, skip
-        ...
-    return registers
-
-
-@pytest.fixture
-def cpu(memory, display, registers):
-    return CPU(memory, display, registers)
 
 
 class TestRegisters:
@@ -292,26 +263,6 @@ class TestOperation:
         assert operation.type == OperationType.STORE_REGISTERS
 
 
-@pytest.fixture
-def display(monkeypatch):
-    def mock_draw_sprite(*aargs, **kwargs):
-        mock_draw_sprite.called = True
-        return mock_clear.called
-
-    mock_draw_sprite.called = False
-
-    def mock_clear(self, *aargs, **kwargs):
-        mock_clear.called = True
-        return mock_clear.called
-
-    mock_clear.called = False
-
-    monkeypatch.setattr(Display, "draw_sprite", mock_draw_sprite)
-    monkeypatch.setattr(Display, "clear", mock_clear)
-
-    return Display(width=64, height=45, scale=4)
-
-
 class TestCPUExecute:
     @pytest.mark.parametrize("memory", [[0xF0, 0x1F]], indirect=True)
     def test_raises_unhandled_operation(self, cpu):
@@ -322,7 +273,7 @@ class TestCPUExecute:
     def test_clear_screen(self, cpu):
         cpu.cycle()
 
-        assert cpu.display.clear.called is True
+        assert cpu.display.clear_called is True
 
     # fmt: off
     @pytest.mark.parametrize(
@@ -548,7 +499,7 @@ class TestCPUExecute:
     def test_display(self, cpu):
         cpu.cycle()
 
-        assert cpu.display.draw_sprite.called is True
+        assert cpu.display.draw_sprite_called is True
         assert cpu.registers[0xF].value == 0x0
 
     @pytest.mark.parametrize("memory", [[0xE3, 0x9E]], indirect=True)
