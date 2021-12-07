@@ -43,21 +43,25 @@ class Keyboard(enum.Enum):
     TWO = (50, 0x2)
     THREE = (51, 0x3)
     C = (99, 0xC)
+
     FOUR = (113, 0x4)
     FIVE = (119, 0x5)
     SIX = (101, 0x6)
     D = (114, 0xD)
+
     SEVEN = (97, 0x7)
     EIGHT = (115, 0x8)
     NINE = (100, 0x9)
     E = (102, 0xE)
+
     A = (122, 0xA)
     ZERO = (120, 0x0)
-    B = (99, 0xB)
+    B = (98, 0xB)
     F = (118, 0xF)
 
     @classmethod
     def value_for_keycode(cls, keycode) -> Optional[int]:
+        """Return a key's mapping for a given SDL keycode."""
         return next((k.value[1] for k in cls if k.value[0] == keycode), None)
 
 
