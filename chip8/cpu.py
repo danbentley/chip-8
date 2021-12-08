@@ -362,11 +362,6 @@ class CPU:
         elif operation.type == OperationType.STORE_REGISTERS:
             for i in range(0x0, operation.x + 1):
                 self.registers[i] = c_uint8(self.memory[self.index + i])
-        else:
-            import logging
-
-            logger = logging.getLogger(__name__)
-            logger.warn(f"unabled operation {operation}")
 
     def cycle(self):
         opcode = self.fetch()
