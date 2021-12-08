@@ -11,18 +11,6 @@ from chip8.interpreter import Interpreter
 from chip8.backends.pygame import PyGameBackend
 
 
-@pytest.fixture(autouse=True)
-def pygame(monkeypatch):
-    """Patch pygame to prevent it from running during testing."""
-
-    def noop(*args, **kwargs):
-        ...
-
-    monkeypatch.setattr("pygame.event", noop)
-    monkeypatch.setattr("pygame.display.set_mode", noop)
-    monkeypatch.setattr("pygame.Surface", noop)
-
-
 @pytest.fixture
 def memory(request):
     memory = Memory()
