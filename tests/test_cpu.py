@@ -542,17 +542,23 @@ class TestCPUExecute:
 
         assert cpu.program_counter == 0x204
 
-    @pytest.mark.parametrize("memory", [[0xF5, 0x15]], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x3, 0x5)]], indirect=True)
+    @pytest.mark.parametrize("memory", [[0xF3, 0x15]], indirect=True)
     def test_set_delay_timer_to_vx(self, cpu):
         cpu.cycle()
 
-        assert cpu.registers[0x5].value == cpu.delay_timer.value
+        assert cpu.registers[0x3].value == 5
+        # delay timer is decreased after being set
+        assert cpu.delay_timer.value == 4
 
-    @pytest.mark.parametrize("memory", [[0xF5, 0x18]], indirect=True)
+    @pytest.mark.parametrize("registers", [[(0x3, 0x5)]], indirect=True)
+    @pytest.mark.parametrize("memory", [[0xF3, 0x18]], indirect=True)
     def test_set_sound_timer_to_vx(self, cpu):
         cpu.cycle()
 
-        assert cpu.registers[0x5].value == cpu.sound_timer.value
+        assert cpu.registers[0x3].value == 5
+        # sound timer is decreased after being set
+        assert cpu.sound_timer.value == 4
 
     @pytest.mark.parametrize("memory", [[0xF5, 0x07]], indirect=True)
     def test_set_vx_to_delay_timer(self, cpu):
