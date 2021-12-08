@@ -215,6 +215,7 @@ class CPU:
         self.registers = registers
         self.stack_pointer = 0x0
         self.delay_timer = c_uint8(0x0)
+        self.sound_timer = c_uint8(0x0)
         self.program_counter = 0x200
         self.index = 0
         self.stack = {}
@@ -339,7 +340,7 @@ class CPU:
         elif operation.type == OperationType.SET_DELAY_TIMER_TO_VX:
             self.delay_timer = self.registers[operation.x]
         elif operation.type == OperationType.SET_SOUND_TIMER_TO_VX:
-            return
+            self.sound_timer = self.registers[operation.x]
         elif operation.type == OperationType.SET_VX_TO_DELAY_TIMER:
             self.registers[operation.x] = self.delay_timer
         elif operation.type == OperationType.ADD_VX_TO_INDEX:
@@ -374,3 +375,6 @@ class CPU:
 
         if self.delay_timer.value > 0:
             self.delay_timer = c_uint8(self.delay_timer.value - 1)
+
+        if self.sound_timer.value > 0:
+            self.sound_timer = c_uint8(self.sound_timer.value - 1)

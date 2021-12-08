@@ -220,6 +220,13 @@ class TestOperation:
 
         assert operation.type == OperationType.SET_DELAY_TIMER_TO_VX
 
+    def test_set_sound_timer_to_vx(self):
+        opcode = 0xF518
+
+        operation = Operation.decode(opcode)
+
+        assert operation.type == OperationType.SET_SOUND_TIMER_TO_VX
+
     def test_set_vx_to_delay_timer(self):
         opcode = 0xF507
 
@@ -540,6 +547,12 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.registers[0x5].value == cpu.delay_timer.value
+
+    @pytest.mark.parametrize("memory", [[0xF5, 0x18]], indirect=True)
+    def test_set_sound_timer_to_vx(self, cpu):
+        cpu.cycle()
+
+        assert cpu.registers[0x5].value == cpu.sound_timer.value
 
     @pytest.mark.parametrize("memory", [[0xF5, 0x07]], indirect=True)
     def test_set_vx_to_delay_timer(self, cpu):
