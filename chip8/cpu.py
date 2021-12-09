@@ -1,4 +1,5 @@
 from ctypes import c_uint8
+from functools import cached_property
 from random import random
 from typing import Optional
 import enum
@@ -189,7 +190,7 @@ class Operation:
             opcode=opcode,
         )
 
-    @property
+    @cached_property
     def type(self):
         try:
             rule = next(r for r in rules if r.match(self))
