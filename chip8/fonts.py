@@ -2,6 +2,8 @@ from enum import Enum
 
 
 class FontLookup(Enum):
+    """Mappings to help find a font key for a character."""
+
     ZERO = "0"
     ONE = "1"
     TWO = "2"
@@ -21,6 +23,11 @@ class FontLookup(Enum):
 
     @classmethod
     def key_for_character(cls, character: str) -> str:
+        """Attempt to find a key for a character string.
+
+        Used to convert a character value into a key to find the correct font
+        data.
+        """
         try:
             return next(k for k, v in cls.__members__.items() if v.value == character)
         except StopIteration as e:
