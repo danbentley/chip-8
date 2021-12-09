@@ -1,21 +1,19 @@
 from ctypes import c_uint8
+from dataclasses import dataclass
 from functools import cached_property
 from random import random
 from typing import Optional
 import enum
 import math
 
-from dataclasses import dataclass
-
 from chip8.fonts import Font
-
 
 FONT_ADDRESS_START = 0x050
 FONT_ADDRESS_END = 0x0A0
 
 
 class InvalidRegisterError(Exception):
-    ...
+    """Exception raised if invalid register is accessed or mutated."""
 
 
 class Registers:
@@ -46,12 +44,14 @@ class Registers:
     VF: c_uint8 = c_uint8(0b0)
 
     def __getitem__(self, index: int) -> c_uint8:
+        """Fetch item from register or raise InvalidRegisterError."""
         try:
             return getattr(self, f"V{index:X}")
         except (AttributeError, ValueError) as e:
             raise InvalidRegisterError(f"Attempt to get value from {index}") from e
 
     def __setitem__(self, index: int, value: c_uint8):
+        """Set item from register or raise InvalidRegisterError."""
         try:
             setattr(self, f"V{index:X}", value)
         except (AttributeError, ValueError) as e:
@@ -95,6 +95,12 @@ class OperationType(enum.Enum):
 
 @dataclass(frozen=True)
 class OperationMatchRule:
+    """A collection of rules to match a given OperationType.
+
+    Operations are checked at exection with its type being the first matched
+    rule.
+    """
+
     type: OperationType
 
     nibble: int
@@ -103,6 +109,13 @@ class OperationMatchRule:
     nn: Optional[int] = None
 
     def match(self, operation) -> bool:
+        """Check with the rule matches a given operation.
+
+        If definied in the rule, an operation needs to match:
+         - n: 4-bit number, the last nibble. For the opcode 0x1234 n is 0x4
+         - nn: 8-bit number, the second byte. For the opcode 0x1234 nn is 0x34
+         - nibble: 4-bit number, the first nibble. For the opcode 0x1234 nn is 0x1
+        """
 
         if self.nibble != operation.nibble:
             return False
@@ -156,19 +169,31 @@ rules = [
 
 @dataclass(frozen=True)
 class Operation:
+    """An operation for the CPU to execute.
 
+    Operations are decoded from CHIP-8 opcodes, a 16-bit
+    integer created from two successive bytes from memory.
+    """
+
+    # Second nibble in the high bit. 0x2 in 0x1234
     x: int
+    # First nibble in the low bit. 0x3 in 0x1234
     y: int
+    # First nibble in the high bit. 0x1 in 0x1234
     nibble: int
-    high: int
-    low: int
+    # last nibble in the opcode. 0x4 in 0x1234
     n: int
+    # last byte in the opcode. 0x34 in 0x1234
     nn: c_uint8
+    # 12-bit integer. Second, third and four nibble in the opcode. 0x234 in 0x1234
     nnn: int
+    # Original opcode.
     opcode: int
 
     @classmethod
-    def decode(cls, opcode):
+    def decode(cls, opcode: int):
+        """Decode the opcode into its constituent parts."""
+
         high, low = opcode >> 8, opcode & 0x0F0
 
         nibble = high >> 4
@@ -178,17 +203,7 @@ class Operation:
         nn = c_uint8(opcode & 0x0FF)
         nnn = opcode & 0x0FFF
 
-        return cls(
-            x=x,
-            y=y,
-            nibble=nibble,
-            high=high,
-            low=low,
-            n=n,
-            nn=nn,
-            nnn=nnn,
-            opcode=opcode,
-        )
+        return cls(x=x, y=y, nibble=nibble, n=n, nn=nn, nnn=nnn, opcode=opcode)
 
     @cached_property
     def type(self):
@@ -204,6 +219,8 @@ class Operation:
 
 
 class UnhandledOperationError(Exception):
+    """Exception raised if OperationType isn't matched for Operation."""
+
     def __init__(self, *args, operation=None):
         super().__init__(*args)
         self.operation = operation
@@ -222,7 +239,12 @@ class CPU:
         self.stack = {}
         self.keycode = None
 
-    def fetch(self):
+    def fetch(self) -> int:
+        """Fetch next opcode from memory.
+
+        Chip-8 opcodes are two bytes in length, combined to a 16-bit integer
+        for convenience.
+        """
         instruction = self.memory[self.program_counter]
         self.program_counter += 1
         instruction2 = self.memory[self.program_counter]
@@ -230,13 +252,12 @@ class CPU:
 
         return instruction << 8 | instruction2
 
-    def decode(self, opcode):
+    def decode(self, opcode: int) -> Operation:
+        """Decode opcode into an Operation."""
         return Operation.decode(opcode)
 
-    def execute(self, operation):
-        print(
-            f"{operation.type} {self.index=} VX={self.registers[operation.x]} VY={self.registers[operation.y]} {self.program_counter=} {self.keycode=} {self.delay_timer=} {hex(operation.opcode)=}"
-        )
+    def execute(self, operation: Operation):
+        """Execute opcode."""
         if operation.type == OperationType.CLEAR_SCREEN:
             self.display.clear()
         elif operation.type == OperationType.RETURN:
