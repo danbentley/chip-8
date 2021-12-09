@@ -1,7 +1,7 @@
 from ctypes import c_uint8
 
 class InvalidMemoryAddressError(Exception):
-    ...
+    """Exception raised if invalid memory address is accessed or mutated."""
 
 
 class Memory:
@@ -52,12 +52,14 @@ class Memory:
         self.memory: list = [0x0] * size
 
     def __getitem__(self, address: int) -> c_uint8:
+        """Fetch item at address or raise InvalidMemoryAddressError."""
         try:
             return self.memory[address]
         except IndexError as e:
             raise InvalidMemoryAddressError from e
 
     def __setitem__(self, address: int, value: c_uint8):
+        """Set item at address or raise InvalidMemoryAddressError."""
         try:
             self.memory[address] = value
         except IndexError as e:
