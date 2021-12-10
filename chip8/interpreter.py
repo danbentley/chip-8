@@ -93,10 +93,14 @@ class Interpreter:
 
     def run(self):
         """Start the event loop and execute CPU cycle."""
-        while True:
+        running = True
+
+        while running:
             for event in self.backend.get():
                 if event.type == EventType.KEYDOWN:
                     self.cpu.keycode = Keyboard.value_for_keycode(event.keycode)
                 if event.type == EventType.KEYUP:
                     self.cpu.keycode = None
+                if event.type == EventType.QUIT:
+                    running = False
             self.cpu.cycle()

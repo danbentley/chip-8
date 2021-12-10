@@ -18,6 +18,7 @@ class PyGameBackend:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
+                yield Event(type=EventType.QUIT)
             if event.type == pygame.KEYDOWN:
                 yield Event(keycode=event.key, type=EventType.KEYDOWN)
             if event.type == pygame.KEYUP:

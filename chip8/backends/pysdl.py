@@ -13,7 +13,8 @@ class PySDLBackend(Backend):
     def get(self) -> Iterator[Event]:
         for event in sdl2.ext.get_events():
             if event.type == sdl2.SDL_QUIT:
-                ...
+                sdl2.ext.quit()
+                yield Event(type=EventType.QUIT)
             if event.type == sdl2.SDL_KEYDOWN:
                 keycode = event.key.keysym.sym
                 yield Event(keycode=keycode, type=EventType.KEYDOWN)
