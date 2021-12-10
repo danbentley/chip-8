@@ -66,11 +66,18 @@ class Keyboard(enum.Enum):
 
 
 class Interpreter:
+    """The interpreter ties together the CPU with the game backend.
+
+    Responsible for setting up the initial environment and running the both the
+    event loop and executing a CPU cycle.
+    """
+
     def __init__(self, backend, cpu):
         self.backend = backend
         self.cpu = cpu
 
     def boot(self):
+        """Load system fonts into memory."""
         fonts = Font.__members__.values()
         for font, location in zip(
             fonts, range(FONT_ADDRESS_START, FONT_ADDRESS_END, 5)
@@ -78,12 +85,14 @@ class Interpreter:
             self.cpu.memory[location : location + 5] = font.value
 
     def load_rom(self, path):
+        """Load a ROM file into memory."""
         with open(path, "rb") as f:
             rom = f.read()
             for instruction, location in zip(rom, range(0x200, 0xFFF)):
                 self.cpu.memory[location] = instruction
 
     def run(self):
+        """Start the event loop and execute CPU cycle."""
         while True:
             for event in self.backend.get():
                 if event.type == EventType.KEYDOWN:
