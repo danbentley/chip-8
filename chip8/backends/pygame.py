@@ -4,6 +4,7 @@ import enum
 
 import pygame
 
+from .base import WIDTH, HEIGHT
 from .events import Event, EventType
 
 import logging
@@ -31,8 +32,13 @@ class Color(enum.Enum):
 
 
 class Display:
-    def __init__(self, width, height, scale):
-        self.size = self.width, self.height = width, height
+
+    width: int = WIDTH
+
+    height: int = HEIGHT
+
+    def __init__(self, scale):
+        self.size = self.width, self.height
         self.scale = scale
 
         self.window = pygame.display.set_mode(

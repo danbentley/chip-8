@@ -6,7 +6,7 @@ import sdl2
 import sdl2.ext
 
 from .events import Event, EventType
-from .base import Backend
+from .base import Backend, WIDTH, HEIGHT
 
 
 class PySDLBackend(Backend):
@@ -29,10 +29,12 @@ class Color(enum.Enum):
 
 
 class Display:
-    def __init__(self, width, height, scale):
-        self.width = width
-        self.height = height
 
+    width: int = WIDTH
+
+    height: int = HEIGHT
+
+    def __init__(self, scale):
         self.scale = scale
 
         self.window = sdl2.ext.Window(
