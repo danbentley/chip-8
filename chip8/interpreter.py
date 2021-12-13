@@ -96,6 +96,8 @@ class Interpreter:
         running = True
 
         while running:
+            self.backend.throttle()
+
             for event in self.backend.get():
                 if event.type == EventType.KEYDOWN:
                     self.cpu.keycode = Keyboard.value_for_keycode(event.keycode)

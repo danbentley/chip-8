@@ -1,4 +1,5 @@
 import enum
+import time
 
 from typing import Iterator
 
@@ -10,6 +11,11 @@ from .base import Backend, WIDTH, HEIGHT
 
 
 class PySDLBackend(Backend):
+    def __init__(self, hertz: int=60):
+        self.hertz = hertz
+        # Time in ms when throttle was last called
+        self.tick = 0
+
     def get(self) -> Iterator[Event]:
         for event in sdl2.ext.get_events():
             if event.type == sdl2.SDL_QUIT:
@@ -21,6 +27,26 @@ class PySDLBackend(Backend):
             if event.type == sdl2.SDL_KEYUP:
                 keycode = event.key.keysym.sym
                 yield Event(keycode=keycode, type=EventType.KEYUP)
+
+    def throttle(self):
+        """Ensure event loop runs at an even cadence.
+
+         - If throttle is called early, SDL_Delay is used to delay execution until
+        it's expected.
+
+         - If throttle is called late, event loop is executed as quickly as
+        possible.
+        """
+        now = time.perf_counter()
+
+        expected_time_to_render = self.tick + 1.0 / self.hertz
+        if expected_time_to_render > now:
+            # Enforce a delay if we're running too quickly
+            delay = int(1000 * (expected_time_to_render - now))
+            sdl2.SDL_Delay(delay)
+            self.tick = expected_time_to_render
+        else:
+            self.tick = now
 
 
 class Color(enum.Enum):

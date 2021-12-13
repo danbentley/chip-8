@@ -7,15 +7,15 @@ from chip8.backends.pysdl import PySDLBackend, Display as SDLDisplay
 from chip8.cpu import CPU, Registers
 
 
-def main(rom_path, backend_name, scale):
+def main(rom_path, backend_name, scale, hertz):
     memory = Memory()
 
     if backend_name == "pygame":
         display = PyGameDisplay(scale=scale)
-        backend = PyGameBackend()
+        backend = PyGameBackend(hertz=hertz)
     else:
         display = SDLDisplay(scale=scale)
-        backend = PySDLBackend()
+        backend = PySDLBackend(hertz=hertz)
 
     cpu = CPU(memory, display, Registers())
 
@@ -40,6 +40,14 @@ if __name__ == "__main__":
         help="Scale the 64x32 display for better rendering on modern monitors",
         default=8,
     )
+    parser.add_argument(
+        "--hertz",
+        "--hz",
+        "--speed",
+        type=int,
+        help="Number of instructions to execute per second. Some games require adjustments to improve playability.",
+        default=500,
+    )
     args = parser.parse_args()
 
-    main(args.path, args.backend, args.scale)
+    main(args.path, args.backend, args.scale, args.hertz)
