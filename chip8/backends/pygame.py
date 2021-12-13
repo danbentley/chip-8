@@ -53,8 +53,15 @@ class PyGameBackend(Backend):
 
 
 class Color(enum.Enum):
-    BLACK = pygame.Color(0, 0, 0)
-    WHITE = pygame.Color(255, 255, 255)
+    """Pygame-specific colour settings for display.
+
+    On/off values can be changed to theme the display's output.
+
+    Defaulted to ON: White, OFF: Black
+    """
+
+    ON = pygame.Color(255, 255, 255)
+    OFF = pygame.Color(0, 0, 0)
 
 
 class Display:
@@ -74,8 +81,8 @@ class Display:
         self.screen = pygame.Surface(self.size)
 
     def set_pixel(self, x, y) -> bool:
-        is_pixel_already_rendered = self.screen.get_at((x, y)) == Color.WHITE.value
-        color = Color.BLACK.value if is_pixel_already_rendered else Color.WHITE.value
+        is_pixel_already_rendered = self.screen.get_at((x, y)) == Color.ON.value
+        color = Color.OFF.value if is_pixel_already_rendered else Color.ON.value
         self.screen.set_at((x, y), color)
 
         return is_pixel_already_rendered
@@ -106,4 +113,4 @@ class Display:
         pygame.display.flip()
 
     def clear(self):
-        self.screen.fill(Color.BLACK.value)
+        self.screen.fill(Color.OFF.value)

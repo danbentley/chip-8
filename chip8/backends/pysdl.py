@@ -50,14 +50,20 @@ class PySDLBackend(Backend):
 
 
 class Color(enum.Enum):
-    BLACK = sdl2.ext.Color(0, 0, 0)
-    WHITE = sdl2.ext.Color(255, 255, 255)
+    """SDL2-specific colour settings for display.
+
+    On/off values can be changed to theme the display's output.
+
+    Defaulted to ON: White, OFF: Black
+    """
+
+    ON = sdl2.ext.Color(255, 255, 255)
+    OFF = sdl2.ext.Color(0, 0, 0)
 
 
 class Display:
 
     width: int = WIDTH
-
     height: int = HEIGHT
 
     def __init__(self, scale):
@@ -78,10 +84,9 @@ class Display:
         pixel_view = sdl2.ext.PixelView(self.screen)
 
         is_pixel_already_rendered = (
-            sdl2.ext.ARGB(pixel_view[y * self.scale][x * self.scale])
-            == Color.WHITE.value
+            sdl2.ext.ARGB(pixel_view[y * self.scale][x * self.scale]) == Color.ON.value
         )
-        color = Color.BLACK.value if is_pixel_already_rendered else Color.WHITE.value
+        color = Color.OFF.value if is_pixel_already_rendered else Color.ON.value
         self.renderer.draw_point((x, y), color=color)
         self.renderer.present()
 
@@ -110,4 +115,4 @@ class Display:
         self.window.refresh()
 
     def clear(self):
-        self.screen.fill(Color.BLACK.value)
+        self.screen.fill(Color.OFF.value)
