@@ -1,11 +1,10 @@
-from typing import Iterator
-
 import enum
 import time
+from typing import Iterator
 
 import pygame
 
-from .base import WIDTH, HEIGHT
+from .base import Backend, Renderable, WIDTH, HEIGHT
 from .events import Event, EventType
 
 import logging

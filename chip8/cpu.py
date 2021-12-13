@@ -6,7 +6,8 @@ from typing import Optional
 import enum
 import math
 
-from chip8.fonts import Font
+from .backends.base import Renderable
+from .fonts import Font
 
 FONT_ADDRESS_START = 0x050
 FONT_ADDRESS_END = 0x0A0
@@ -227,7 +228,7 @@ class UnhandledOperationError(Exception):
 
 
 class CPU:
-    def __init__(self, memory, display, registers):
+    def __init__(self, memory, display: Renderable, registers):
         self.memory = memory
         self.display = display
         self.registers = registers

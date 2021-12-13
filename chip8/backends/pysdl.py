@@ -7,16 +7,17 @@ import sdl2
 import sdl2.ext
 
 from .events import Event, EventType
-from .base import Backend, WIDTH, HEIGHT
+from .base import Backend, Renderable, WIDTH, HEIGHT
 
 
 class PySDLBackend(Backend):
-    def __init__(self, hertz: int=60):
+    def __init__(self, hertz: int = 60):
         self.hertz = hertz
         # Time in ms when throttle was last called
         self.tick = 0
 
     def get(self) -> Iterator[Event]:
+        """Yield a bridged Event object for sdl2 events we're interested in."""
         for event in sdl2.ext.get_events():
             if event.type == sdl2.SDL_QUIT:
                 sdl2.ext.quit()
@@ -61,7 +62,7 @@ class Color(enum.Enum):
     OFF = sdl2.ext.Color(0, 0, 0)
 
 
-class Display:
+class Display(Renderable):
 
     width: int = WIDTH
     height: int = HEIGHT

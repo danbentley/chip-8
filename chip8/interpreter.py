@@ -2,6 +2,7 @@ from typing import Optional
 
 import enum
 
+from .backends.base import Backend
 from .backends.events import EventType
 from .cpu import FONT_ADDRESS_START, FONT_ADDRESS_END
 from .fonts import Font
@@ -72,7 +73,7 @@ class Interpreter:
     event loop and executing a CPU cycle.
     """
 
-    def __init__(self, backend, cpu):
+    def __init__(self, backend: Backend, cpu):
         self.backend = backend
         self.cpu = cpu
 
