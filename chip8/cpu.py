@@ -261,44 +261,57 @@ class CPU:
         """Execute opcode."""
         if operation.type == OperationType.CLEAR_SCREEN:
             self.display.clear()
+
         elif operation.type == OperationType.RETURN:
             self.program_counter = self.stack[self.stack_pointer]
             self.stack_pointer -= 1
+
         elif operation.type == OperationType.JUMP:
             self.program_counter = operation.nnn
+
         elif operation.type == OperationType.CALL:
             self.stack_pointer += 1
             self.stack[self.stack_pointer] = self.program_counter
             self.program_counter = operation.nnn
+
         elif operation.type == OperationType.SKIP_IF_VX_AND_NN_ARE_EQUAL:
             if self.registers[operation.x].value == operation.nn.value:
                 self.program_counter += 2
+
         elif operation.type == OperationType.SKIP_IF_VX_AND_NN_ARE_NOT_EQUAL:
             if self.registers[operation.x].value != operation.nn.value:
                 self.program_counter += 2
+
         elif operation.type == OperationType.SKIP_IF_VX_AND_VY_ARE_EQUAL:
             if self.registers[operation.x].value == self.registers[operation.y].value:
                 self.program_counter += 2
+
         elif operation.type == OperationType.SET_REGISTER:
             self.registers[operation.x] = operation.nn
+
         elif operation.type == OperationType.ADD:
             self.registers[operation.x] = c_uint8(
                 self.registers[operation.x].value + operation.nn.value
             )
+
         elif operation.type == OperationType.SET_VX:
             self.registers[operation.x] = self.registers[operation.y]
+
         elif operation.type == OperationType.SET_VX_TO_VX_OR_VY:
             self.registers[operation.x] = c_uint8(
                 self.registers[operation.x].value | self.registers[operation.y].value
             )
+
         elif operation.type == OperationType.SET_VX_TO_VX_AND_VY:
             self.registers[operation.x] = c_uint8(
                 self.registers[operation.x].value & self.registers[operation.y].value
             )
+
         elif operation.type == OperationType.SET_VX_TO_VX_XOR_VY:
             self.registers[operation.x] = c_uint8(
                 self.registers[operation.x].value ^ self.registers[operation.y].value
             )
+
         elif operation.type == OperationType.SET_VX_TO_VX_ADD_VY:
             total = (
                 self.registers[operation.x].value + self.registers[operation.y].value
@@ -308,6 +321,7 @@ class CPU:
                 self.registers[0xF] = c_uint8(1)
             else:
                 self.registers[0xF] = c_uint8(0)
+
         elif operation.type == OperationType.SET_VX_TO_VX_SUB_VY:
 
             if self.registers[operation.x].value > self.registers[operation.y].value:
@@ -317,11 +331,13 @@ class CPU:
             self.registers[operation.x] = c_uint8(
                 self.registers[operation.x].value - self.registers[operation.y].value
             )
+
         elif operation.type == OperationType.SHIFT_VX_RIGHT:
             self.registers[0xF] = c_uint8(self.registers[operation.x].value & 0x1)
             self.registers[operation.x] = c_uint8(
                 self.registers[operation.y].value >> 1
             )
+
         elif operation.type == OperationType.SET_VX_TO_VY_SUB_VX:
             if self.registers[operation.y].value > self.registers[operation.x].value:
                 self.registers[0xF] = c_uint8(1)
@@ -330,20 +346,25 @@ class CPU:
             self.registers[operation.x] = c_uint8(
                 self.registers[operation.y].value - self.registers[operation.x].value
             )
+
         elif operation.type == OperationType.SHIFT_VX_LEFT:
             self.registers[0xF] = c_uint8(self.registers[operation.x].value >> 7 & 1)
             self.registers[operation.x] = c_uint8(
                 self.registers[operation.y].value << 1
             )
+
         elif operation.type == OperationType.SKIP_IF_VX_AND_VY_ARE_NOT_EQUAL:
             if self.registers[operation.x].value != self.registers[operation.y].value:
                 self.program_counter += 2
+
         elif operation.type == OperationType.SET_INDEX:
             self.index = operation.nnn
+
         elif operation.type == OperationType.RANDOM:
             self.registers[operation.x] = c_uint8(
                 math.ceil(random() * 255) & operation.nn.value
             )
+
         elif operation.type == OperationType.DISPLAY:
             sprite = [
                 self.memory[i] for i in range(self.index, self.index + operation.n)
@@ -354,39 +375,55 @@ class CPU:
                 self.registers[operation.y].value,
             )
             self.registers[0xF] = c_uint8(collision)
+
         elif operation.type == OperationType.SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL:
             if self.registers[operation.x].value == self.keycode:
                 self.program_counter += 2
+
         elif operation.type == OperationType.SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL:
             if self.registers[operation.x].value != self.keycode:
                 self.program_counter += 2
+
         elif operation.type == OperationType.SET_DELAY_TIMER_TO_VX:
             self.delay_timer = self.registers[operation.x]
+
         elif operation.type == OperationType.SET_SOUND_TIMER_TO_VX:
             self.sound_timer = self.registers[operation.x]
+
         elif operation.type == OperationType.SET_VX_TO_DELAY_TIMER:
             self.registers[operation.x] = self.delay_timer
+
         elif operation.type == OperationType.ADD_VX_TO_INDEX:
             self.index = self.index + self.registers[operation.x].value
+
         elif operation.type == OperationType.FONT:
             character = self.registers[operation.x].value
             sprite = Font.mapping_for_character(character)
             self.index = next(
                 location
                 for location in range(FONT_ADDRESS_START, FONT_ADDRESS_END, 5)
-                if self.memory[location : location + 5] == sprite
+                if self.memory[location : location + len(sprite)] == sprite
             )
+
         elif operation.type == OperationType.STORE_BINARY_CODED_DECIMAL:
             value = self.registers[operation.x].value
-            self.memory[self.index : self.index + 3] = [int(i) for i in str(value)]
+            self.memory[self.index : self.index + len(value)] = [
+                int(i) for i in str(value)
+            ]
+
         elif operation.type == OperationType.LOAD_REGISTERS:
             for i in range(0x0, operation.x + 1):
                 self.memory[self.index + i] = self.registers[i].value
+
         elif operation.type == OperationType.STORE_REGISTERS:
             for i in range(0x0, operation.x + 1):
                 self.registers[i] = c_uint8(self.memory[self.index + i])
 
     def cycle(self):
+        """Emulate a single CPU cycle.
+
+        Called once per cycle of the Event loop
+        """
         opcode = self.fetch()
         operation = self.decode(opcode)
         self.execute(operation)
