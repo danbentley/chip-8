@@ -67,9 +67,6 @@ class Renderable(Protocol):
         Required to support opcode 0xDXYN
         """
 
-    def update(self):
-        """Render updates"""
-
     def clear(self):
         """Clear the screen's contents.
 
