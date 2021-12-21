@@ -12,9 +12,9 @@ from .base import Backend, Renderable, Sprite, WIDTH, HEIGHT
 
 class PySDLBackend(Backend):
     def __init__(self, hertz: int = 60):
-        self.hertz = hertz
+        self.hertz: int = hertz
         # Time in ms when throttle was last called
-        self.tick = 0
+        self.tick: float = 0
 
     def get(self) -> Iterator[Event]:
         """Yield a bridged Event object for sdl2 events we're interested in."""
@@ -68,6 +68,15 @@ class Display(Renderable):
     height: int = HEIGHT
 
     def __init__(self, scale):
+        """
+        - Surface: A collection of pixels for rendering
+        - Renderer: Handles drawing pixels to a window
+        - Window: Interface for graphics
+
+         - https://wiki.libsdl.org/SDL_Surface
+         - https://wiki.libsdl.org/SDL_Renderer
+         - https://wiki.libsdl.org/SDL_Window
+        """
         self.scale = scale
 
         self.window = sdl2.ext.Window(
@@ -77,12 +86,21 @@ class Display(Renderable):
         )
         self.window.show()
 
-        self.screen = self.window.get_surface()
-        self.renderer = sdl2.ext.Renderer(self.screen)
+        self.surface = self.window.get_surface()
+        self.renderer = sdl2.ext.Renderer(self.surface)
         self.renderer.scale = (self.scale, self.scale)
 
-    def set_pixel(self, x, y) -> bool:
-        pixel_view = sdl2.ext.PixelView(self.screen)
+    def set_pixel(self, x: int, y: int) -> bool:
+        """
+        Draw pixel to screen. Chip-8 has no framebuffer so pixels are drawn
+        immediately.
+
+        Before drawing a pixel we check for whether the pixel has already been
+        drawn to report back to draw_sprite for basic collision detection.
+
+        https://pysdl2.readthedocs.io/en/latest/modules/sdl2ext_pixelaccess.html#sdl2.ext.PixelView
+        """
+        pixel_view = sdl2.ext.PixelView(self.surface)
 
         is_pixel_already_rendered = (
             sdl2.ext.ARGB(pixel_view[y * self.scale][x * self.scale]) == Color.ON.value
@@ -93,18 +111,21 @@ class Display(Renderable):
 
         return is_pixel_already_rendered
 
-    def draw_sprite(self, sprite, x, y) -> bool:
-
+    def draw_sprite(self, sprite: Sprite, x: int, y: int) -> bool:
+        """Draw sprite to renderer."""
         does_sprite_overlap = False
 
         for line_count, line in enumerate(sprite):
-            for char_count, character in enumerate(format(line, "08b")):
+            for char_count, character in enumerate(format(line, "04b")):
+
                 if character == "1":
 
                     wrapped_x = (x + char_count) % self.width
                     wrapped_y = (y + line_count) % self.height
 
-                    is_pixel_already_rendered = self.set_pixel(wrapped_x, wrapped_y)
+                    is_pixel_already_rendered = self.set_pixel(
+                        wrapped_x, wrapped_y, character != "1"
+                    )
                     if is_pixel_already_rendered:
                         does_sprite_overlap = True
 
@@ -113,7 +134,9 @@ class Display(Renderable):
         return does_sprite_overlap
 
     def update(self):
+        """Draw changes made to renderer to screen."""
         self.window.refresh()
 
     def clear(self):
-        self.screen.fill(Color.OFF.value)
+        """Clear the display by setting all pixels to 'off'."""
+        sdl2.ext.fill(self.surface, Color.OFF.value)

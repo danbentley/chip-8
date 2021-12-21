@@ -15,9 +15,9 @@ logger.setLevel("DEBUG")
 
 class PyGameBackend(Backend):
     def __init__(self, hertz: int = 60):
-        self.hertz = hertz
+        self.hertz: int = hertz
         # Time in ms when throttle was last called
-        self.tick = 0
+        self.tick: float = 0
 
     def get(self) -> Iterator[Event]:
         """Yield a bridged Event object for pygame events we're interested in."""
@@ -63,35 +63,46 @@ class Color(enum.Enum):
     OFF = pygame.Color(0, 0, 0)
 
 
-class Display:
+class Display(Renderable):
 
     width: int = WIDTH
 
     height: int = HEIGHT
 
     def __init__(self, scale):
-        self.size = self.width, self.height
-        self.scale = scale
+        """Set up pygame surfaces for drawing.
 
-        self.window = pygame.display.set_mode(
-            (self.width * self.scale, self.height * self.scale), vsync=1
+        Create a pygame window, a display surface to render the game to
+        and an additional surface to use as a scratch area.
+        """
+        self.display = pygame.display.set_mode(
+            (self.width * scale, self.height * scale),
         )
-
-        self.screen = pygame.Surface(self.size)
+        self.surface = pygame.Surface((self.width, self.height))
 
     def set_pixel(self, x, y) -> bool:
-        is_pixel_already_rendered = self.screen.get_at((x, y)) == Color.ON.value
+        """Enable/disable a specific pixel.
+
+        raises IndexError if pixel is queried outside of surface bounds.
+
+        Using pygame.Surface.set_at/get_at is slow. Manipulating a pygame.PixelArray
+        in memory may be a better approach.
+
+        https://www.pygame.org/docs/ref/surface.html#pygame.Surface.get_at
+        """
+        is_pixel_already_rendered = self.surface.get_at((x, y)) == Color.ON.value
         color = Color.OFF.value if is_pixel_already_rendered else Color.ON.value
-        self.screen.set_at((x, y), color)
+        self.surface.set_at((x, y), color)
 
         return is_pixel_already_rendered
 
-    def draw_sprite(self, sprite, x, y) -> bool:
+    def draw_sprite(self, sprite: Sprite, x, y) -> bool:
+        """Draw sprite to surface."""
 
         does_sprite_overlap = False
 
         for line_count, line in enumerate(sprite):
-            for char_count, character in enumerate(format(line, "0bb")):
+            for char_count, character in enumerate(format(line, "04b")):
                 if character == "1":
 
                     wrapped_x = (x + char_count) % self.width
@@ -106,10 +117,24 @@ class Display:
         return does_sprite_overlap
 
     def update(self):
-        self.window.blit(
-            pygame.transform.scale(self.screen, self.window.get_rect().size), (0, 0)
+        """Bilt to the display to reflect changes made to a surface's pixels.
+
+        This is sub-optimal. Since we know where the size of a sprite and where
+        it's drawn, performance may be improved by only blitting the affected
+        pixels.
+        """
+        # Transfer the changes made to the surface to the main display
+        # https://www.pygame.org/docs/ref/display.html#pygame.display.blit
+        self.display.blit(
+            pygame.transform.scale(self.surface, self.display.get_rect().size), (0, 0)
         )
+        # Render a surface's surface to display
+        # https://www.pygame.org/docs/ref/display.html#pygame.display.flip
         pygame.display.flip()
 
     def clear(self):
-        self.screen.fill(Color.OFF.value)
+        """Clear surface. Used by opcode 0x00E0
+
+        https://www.pygame.org/docs/ref/surface.html?highlight=fill#pygame.Surface.fill
+        """
+        self.surface.fill(Color.OFF.value)
