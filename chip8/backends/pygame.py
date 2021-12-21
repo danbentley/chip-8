@@ -4,7 +4,7 @@ from typing import Iterator
 
 import pygame
 
-from .base import Backend, Renderable, WIDTH, HEIGHT
+from .base import Backend, Renderable, Sprite, WIDTH, HEIGHT
 from .events import Event, EventType
 
 import logging

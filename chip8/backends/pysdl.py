@@ -7,7 +7,7 @@ import sdl2
 import sdl2.ext
 
 from .events import Event, EventType
-from .base import Backend, Renderable, WIDTH, HEIGHT
+from .base import Backend, Renderable, Sprite, WIDTH, HEIGHT
 
 
 class PySDLBackend(Backend):

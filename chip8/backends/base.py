@@ -1,6 +1,9 @@
-from typing import Protocol, Iterator
+from typing import Protocol, Iterator, List
 
 from .events import Event
+
+Sprite = List[int]
+
 
 WIDTH = 64
 HEIGHT = 32
@@ -29,12 +32,32 @@ class Renderable(Protocol):
     window should support scaling.
     """
 
-    def draw_sprite(self, sprite: list[int], x: int, y: int) -> bool:
+    def draw_sprite(self, sprite: Sprite, x: int, y: int) -> bool:
         """Render the sprite to screen at the given coordinates.
 
         Sprites are lists containing 8-bit integers. Each int is converted to
         its binary representation. A 1 being a pixel that's on, a 0 being a
         pixel that's off.
+
+        For example, the font sprite '2' is defined as:
+
+        TWO = [0xF, 0x1, 0xF, 0x8, 0xF]
+
+        Or in binary:
+
+        TWO = [
+            1111
+            0001
+            1111
+            1000
+            1111
+        ]
+
+        The Chip-8 spec specifies that pixels are XORed together:
+
+        x 0 1
+        0 0 1
+        1 1 0
 
         Sprites that exceed the bounds of the screen will wrap.
 
