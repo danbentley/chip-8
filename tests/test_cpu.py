@@ -213,6 +213,13 @@ class TestOperation:
 
         assert operation.type == OperationType.SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL
 
+    def test_wait_for_key_press(self):
+        opcode = 0xF50A
+
+        operation = Operation.decode(opcode)
+
+        assert operation.type == OperationType.WAIT_FOR_KEY_PRESS
+
     def test_set_delay_timer_to_vx(self):
         opcode = 0xF515
 
@@ -541,6 +548,22 @@ class TestCPUExecute:
         cpu.cycle()
 
         assert cpu.program_counter == 0x204
+
+    @pytest.mark.parametrize("memory", [[0xF5, 0x0A]], indirect=True)
+    def test_wait_for_key_press_true(self, cpu):
+        cpu.keycode = 0x01
+
+        cpu.cycle()
+
+        assert cpu.registers[0x5].value == 0x01
+        assert cpu.program_counter == 0x204
+
+    @pytest.mark.parametrize("memory", [[0xF5, 0x0A]], indirect=True)
+    def test_wait_for_key_press_false(self, cpu):
+        cpu.cycle()
+
+        # If no key is pressed, program_counter shouldn't change
+        assert cpu.program_counter == 0x202
 
     @pytest.mark.parametrize("registers", [[(0x3, 0x5)]], indirect=True)
     @pytest.mark.parametrize("memory", [[0xF3, 0x15]], indirect=True)

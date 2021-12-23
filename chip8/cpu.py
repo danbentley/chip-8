@@ -84,6 +84,7 @@ class OperationType(enum.Enum):
     DISPLAY = enum.auto()
     SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL = enum.auto()
     SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL = enum.auto()
+    WAIT_FOR_KEY_PRESS = enum.auto()
     SET_DELAY_TIMER_TO_VX = enum.auto()
     SET_SOUND_TIMER_TO_VX = enum.auto()
     SET_VX_TO_DELAY_TIMER = enum.auto()
@@ -156,6 +157,7 @@ rules = [
     OperationMatchRule(nibble=0xD, type=OperationType.DISPLAY),
     OperationMatchRule(nibble=0xE, nn=0x9E, type=OperationType.SKIP_IF_VX_AND_KEYCODE_ARE_EQUAL),
     OperationMatchRule(nibble=0xE, nn=0xA1, type=OperationType.SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL),
+    OperationMatchRule(nibble=0xF, nn=0x0A, type=OperationType.WAIT_FOR_KEY_PRESS),
     OperationMatchRule(nibble=0xF, nn=0x15, type=OperationType.SET_DELAY_TIMER_TO_VX),
     OperationMatchRule(nibble=0xF, nn=0x18, type=OperationType.SET_SOUND_TIMER_TO_VX),
     OperationMatchRule(nibble=0xF, nn=0x07, type=OperationType.SET_VX_TO_DELAY_TIMER),
@@ -383,6 +385,14 @@ class CPU:
         elif operation.type == OperationType.SKIP_IF_VX_AND_KEYCODE_ARE_NOT_EQUAL:
             if self.registers[operation.x].value != self.keycode:
                 self.program_counter += 2
+
+        elif operation.type == OperationType.WAIT_FOR_KEY_PRESS:
+            # Only advance if a key is pressed
+            if not self.keycode:
+                return
+
+            self.registers[operation.x] = c_uint8(self.keycode)
+            self.program_counter += 2
 
         elif operation.type == OperationType.SET_DELAY_TIMER_TO_VX:
             self.delay_timer = self.registers[operation.x]
