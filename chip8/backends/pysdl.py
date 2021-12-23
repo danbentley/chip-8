@@ -116,16 +116,14 @@ class Display(Renderable):
         does_sprite_overlap = False
 
         for line_count, line in enumerate(sprite):
-            for char_count, character in enumerate(format(line, "04b")):
+            for char_count, character in enumerate(format(line, "08b")):
 
                 if character == "1":
 
                     wrapped_x = (x + char_count) % self.width
                     wrapped_y = (y + line_count) % self.height
 
-                    is_pixel_already_rendered = self.set_pixel(
-                        wrapped_x, wrapped_y, character != "1"
-                    )
+                    is_pixel_already_rendered = self.set_pixel(wrapped_x, wrapped_y)
                     if is_pixel_already_rendered:
                         does_sprite_overlap = True
 

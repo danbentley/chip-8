@@ -102,7 +102,7 @@ class Display(Renderable):
         does_sprite_overlap = False
 
         for line_count, line in enumerate(sprite):
-            for char_count, character in enumerate(format(line, "04b")):
+            for char_count, character in enumerate(format(line, "08b")):
                 if character == "1":
 
                     wrapped_x = (x + char_count) % self.width
