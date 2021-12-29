@@ -429,7 +429,7 @@ class CPU:
 
         elif operation.type == OperationType.STORE_BINARY_CODED_DECIMAL:
             value = self.registers[operation.x].value
-            self.memory[self.index : self.index + len(value)] = [
+            self.memory[self.index : self.index + len(str(value))] = [
                 int(i) for i in str(value)
             ]
 
