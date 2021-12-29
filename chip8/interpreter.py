@@ -106,4 +106,6 @@ class Interpreter:
                     self.cpu.keycode = None
                 if event.type == EventType.QUIT:
                     running = False
+                    self.cpu.shutdown()
+
             self.cpu.cycle()

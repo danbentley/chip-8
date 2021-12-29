@@ -443,3 +443,7 @@ class CPU:
 
         if self.sound_timer.value > 0:
             self.sound_timer = c_uint8(self.sound_timer.value - 1)
+
+    def shutdown(self):
+        """Called when backend emits QUIT event."""
+        pass

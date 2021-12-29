@@ -5,9 +5,10 @@ from chip8.memory import Memory
 from chip8.backends.pygame import PyGameBackend, Display as PyGameDisplay
 from chip8.backends.pysdl import PySDLBackend, Display as SDLDisplay
 from chip8.cpu import CPU, Registers
+from chip8.profiler import CPUProfiler
 
 
-def main(rom_path, backend_name, scale, hertz):
+def main(rom_path, backend_name, scale, hertz, profile):
     memory = Memory()
 
     if backend_name == "pygame":
@@ -18,6 +19,8 @@ def main(rom_path, backend_name, scale, hertz):
         backend = PySDLBackend(hertz=hertz)
 
     cpu = CPU(memory, display, Registers())
+    if profile:
+        cpu = CPUProfiler(cpu)
 
     interpreter = Interpreter(backend, cpu)
     interpreter.boot()
@@ -48,6 +51,12 @@ if __name__ == "__main__":
         help="Number of instructions to execute per second. Some games require adjustments to improve playability.",
         default=500,
     )
+    parser.add_argument(
+        "--profile",
+        type=bool,
+        action=argparse.BooleanOptionalAction,
+        help="Profile CPU cycles. Outputs results on exit",
+    )
     args = parser.parse_args()
 
-    main(args.path, args.backend, args.scale, args.hertz)
+    main(args.path, args.backend, args.scale, args.hertz, args.profile)
