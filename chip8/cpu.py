@@ -214,11 +214,23 @@ class Operation:
             rule = next(r for r in rules if r.match(self))
         except StopIteration as e:
             raise UnhandledOperationError(
-                f"Unhandled operation for opcode: {hex(self.opcode)}",
-                operation=self,
+                f"Unhandled operation for opcode: {hex(self.opcode)}", operation=self,
             ) from e
 
         return rule.type
+
+    def __repr__(self):
+        return (
+            f"Operation("
+            f"x={self.x}, "
+            f"y={self.y}, "
+            f"nibble={self.nibble}, "
+            f"n={self.n}, "
+            f"nn={self.nn}, "
+            f"nnn={self.nnn}, "
+            f"opcode={self.opcode:#4x}, "
+            f")"
+        )
 
 
 class UnhandledOperationError(Exception):
