@@ -459,3 +459,6 @@ class CPU:
     def shutdown(self):
         """Called when backend emits QUIT event."""
         pass
+
+    def __str__(self):
+        return f'{self.program_counter=}'

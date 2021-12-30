@@ -66,6 +66,13 @@ class Keyboard(enum.Enum):
         return next((k.value[1] for k in cls if k.value[0] == keycode), None)
 
 
+class DebugBindings(enum.Enum):
+    PAUSE = 1073741886  # F5
+    NEXT = 1073741887  # F6
+    LOG = 1073741888  # F7
+    CONTINUE = 1073741889  # F8
+
+
 class Interpreter:
     """The interpreter ties together the CPU with the game backend.
 
@@ -95,17 +102,35 @@ class Interpreter:
     def run(self):
         """Start the event loop and execute CPU cycle."""
         running = True
+        paused = False
 
         while running:
+            debug_next_step = False
+
             self.backend.throttle()
 
             for event in self.backend.get():
                 if event.type == EventType.KEYDOWN:
                     self.cpu.keycode = Keyboard.value_for_keycode(event.keycode)
+
+                    if event.keycode == DebugBindings.PAUSE.value:
+                        paused = True
+                    elif event.keycode == DebugBindings.NEXT.value:
+                        debug_next_step = True
+                        paused = False
+                    elif event.keycode == DebugBindings.LOG.value:
+                        print(f"{self.cpu}")
+                    elif event.keycode == DebugBindings.CONTINUE.value:
+                        paused = False
+
                 if event.type == EventType.KEYUP:
                     self.cpu.keycode = None
                 if event.type == EventType.QUIT:
                     running = False
                     self.cpu.shutdown()
 
-            self.cpu.cycle()
+            if not paused:
+                self.cpu.cycle()
+
+            if debug_next_step:
+                paused = True
